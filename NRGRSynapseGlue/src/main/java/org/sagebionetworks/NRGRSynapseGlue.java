@@ -77,9 +77,11 @@ public class NRGRSynapseGlue {
 	private static final long TABLE_UPDATE_TIMEOOUT = 10000L;
 
 	private static final String PART_SEPARATOR = "|";
+	private static final String REGEX_FOR_PART_SEPARATOR = "\\|";
+	
 
 	private static final String TOKEN_TERMINATOR = 
-			"\n===========================================================================\n";
+			"===========================================================================";
 
 	private static final String REJECTION_REASON_LABEL = "rejectionReason";
 	
@@ -289,7 +291,6 @@ public class NRGRSynapseGlue {
 		} else {
 			System.out.println("Sending message to "+messageToUser.getRecipients());
 		}
-
 	}
 
 	private String createToken(String userId) {
@@ -309,7 +310,7 @@ public class NRGRSynapseGlue {
 		return sb.toString();
 	}
 
-	private String hmac(String s) {
+	private static String hmac(String s) {
 		return new String(generateHMACSHA1SignatureFromBase64EncodedKey(s, getProperty("HMAC_SECRET_KEY")));
 	}
 
@@ -345,10 +346,12 @@ public class NRGRSynapseGlue {
 	private static String createTokenMessage(UserProfile userProfile, String token) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(salutation(userProfile));
-		sb.append("As part of your application for the CommonMind data access, you must include this email message, including the following section:");
-		sb.append(TOKEN_TERMINATOR);
+		sb.append("\nAs part of your application for the CommonMind data access, you must include this message.\n");
+		sb.append("\n");
+		sb.append("\n"+TOKEN_TERMINATOR+"\n");
 		sb.append(token);
-		sb.append(TOKEN_TERMINATOR);
+		sb.append("\n"+TOKEN_TERMINATOR+"\n");
+		sb.append("\n");
 		sb.append("Note:  This token is valid for 14 days.\n");
 		sb.append(MESSAGE_SIGNATURE_LINE);
 		return sb.toString();
@@ -367,12 +370,13 @@ public class NRGRSynapseGlue {
 		int tokenStart = leadingTerminator+TOKEN_TERMINATOR.length();
 		int trailingTerminator = result.indexOf(TOKEN_TERMINATOR, tokenStart);
 		if (trailingTerminator<0) throw new IllegalArgumentException("Two token boundaries ('==....==') expected but just one found.");
-		String token = result.substring(tokenStart, trailingTerminator);
-		String[] tokenParts = token.split(PART_SEPARATOR);
+		String token = result.substring(tokenStart, trailingTerminator).trim();
+		String[] tokenParts = token.split(REGEX_FOR_PART_SEPARATOR);
 		if (tokenParts.length!=4) throw new IllegalArgumentException("Token should contain four parts, but "+tokenParts.length+" found.");
-		String userId = tokenParts[0];
-		String accessRequirementId = tokenParts[1];
-		String epochString = tokenParts[2];
+		String userId = tokenParts[0].trim();
+		String accessRequirementId = tokenParts[1].trim();
+		String epochString = tokenParts[2].trim();
+		String hmac = tokenParts[3].trim();
 		long epoch;
 		try {
 			epoch = Long.parseLong(epochString);
@@ -380,15 +384,14 @@ public class NRGRSynapseGlue {
 			throw new UserLinkedException(userId, "Illegal time stamp in message.", e);
 		}
 		long tokenTimeout = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
-		if (epoch+tokenTimeout>System.currentTimeMillis())
+		if (epoch+tokenTimeout<System.currentTimeMillis())
 			throw new UserLinkedException(userId, "Message timestamp has expired.");
-		String hmac = tokenParts[3];
 		String expectedAccessRequirementId = getProperty("ACCESS_REQUIREMENT_ID");
 		if (!accessRequirementId.equals(expectedAccessRequirementId))
 			throw new UserLinkedException(userId, "Expected access requirement ID "+expectedAccessRequirementId+
 					" but found "+accessRequirementId);
-		String recomputedHmac = createUnsignedToken(userId, accessRequirementId, epochString);
-		if (!hmac.equals(recomputedHmac)) throw new UserLinkedException(userId, "Invalid digital signature.");
+		String recomputedHmac = hmac(createUnsignedToken(userId, accessRequirementId, epochString));
+		if (!hmac.equals(recomputedHmac)) throw new UserLinkedException(userId, "Message has an invalid digital signature.");
 		return userId;
 	}
 
@@ -399,7 +402,7 @@ public class NRGRSynapseGlue {
 		List<SubmissionStatus> statusesToUpdate = new ArrayList<SubmissionStatus>();
 		List<String> acceptedUserIds = new ArrayList<String>();
 		Map<String,String> rejected = new HashMap<String,String>(); // key is userId, value is 'reason' message
-
+		int rejectedCount = 0;
 		for (int offset=0; offset<total; offset+=PAGE_SIZE) {
 			// get the newly RECEIVED Submissions
 			PaginatedResults<SubmissionBundle> submissionPGs = 
@@ -416,10 +419,11 @@ public class NRGRSynapseGlue {
 				SubmissionStatusEnum newStatus = null;
 				try {
 					String userId = parseTokenFromFile(temp);
-					newStatus = SubmissionStatusEnum.VALIDATED;
+					newStatus = SubmissionStatusEnum.ACCEPTED;
 					acceptedUserIds.add(userId);
 				} catch (IllegalArgumentException e) {
 					newStatus = SubmissionStatusEnum.REJECTED;
+					rejectedCount++;
 					addRejectionReasonToStatus(status, e.getMessage());
 					if (e instanceof UserLinkedException) {
 						UserLinkedException ule = (UserLinkedException)e;
@@ -444,10 +448,8 @@ public class NRGRSynapseGlue {
 			approvedIndex = getColumnIndexForName(result.getFirst(), APPROVED);
 			for (Row row : result.getSecond()) {
 				String userId = row.getValues().get(userIdIndex);
-				String approvedOrRejectedDateString = row.getValues().get(approvedOrRejectedDateIndex);
 				String approvedString = row.getValues().get(approvedIndex);
-				if (approvedOrRejectedDateString==null || 
-						(approvedString!=null && Boolean.valueOf(approvedString)==false)) {
+				if (approvedString==null || Boolean.valueOf(approvedString)==false) {
 					acceptedAndNotYetApproved.put(userId, row);
 				}
 			}
@@ -483,12 +485,12 @@ public class NRGRSynapseGlue {
 		Map<String,String> confirmedRejected = updateTableForRejected(rejected, tableId);
 
 		updateSubmissionStatusBatch(evaluationId, statusesToUpdate);
-		sendApproveNotifications(acceptedUserIds);
+		sendApproveNotifications(acceptedAndNotYetApproved.keySet());
 		sendRejectionNotifications(confirmedRejected);
 		
 		System.out.println("Retrieved "+total+
 				" submissions for approval. Accepted "+acceptedUserIds.size()+
-				" and rejected "+rejected.size()+".");
+				" and rejected "+rejectedCount+".");
 
 	}
 	
@@ -540,6 +542,7 @@ public class NRGRSynapseGlue {
 		sa.setIsPrivate(false);
 		sa.setKey(REJECTION_REASON_LABEL);
 		sa.setValue(reason);
+		stringAnnos.add(sa);
 	}
 	
 	private Map<String,String> updateTableForRejected(Map<String,String> rejected, String tableId) throws SynapseException, InterruptedException {
@@ -573,7 +576,7 @@ public class NRGRSynapseGlue {
 		return confirmedRejected;
 	}
 	
-	private void sendApproveNotifications(List<String> userIds) {
+	private void sendApproveNotifications(Collection<String> userIds) {
 		for (String userId : userIds) {
 			try {
 				UserProfile userProfile = synapseClient.getUserProfile(userId);
@@ -582,7 +585,7 @@ public class NRGRSynapseGlue {
 				message.setRecipients(Collections.singleton(userId));
 				StringBuilder messageBody = new StringBuilder();
 				messageBody.append(salutation(userProfile));
-				messageBody.append("You have been approved to access the Common Mind Consortium data.");
+				messageBody.append("\nYou have been approved to access the Common Mind Consortium data.\n");
 				messageBody.append(MESSAGE_SIGNATURE_LINE);
 				sendMessage(message, messageBody.toString());
 			} catch (SynapseException e) {
@@ -602,11 +605,11 @@ public class NRGRSynapseGlue {
 				message.setRecipients(Collections.singleton(userId));
 				StringBuilder messageBody = new StringBuilder();
 				messageBody.append(salutation(userProfile));
-				messageBody.append("Your request for access to the Common Mind data has been declined.\n");
+				messageBody.append("\nYour request for access to the Common Mind data has been declined.\n");
 				if (reason!=null) {
-					messageBody.append("\n\tReason:");
+					messageBody.append("\n\tReason: ");
 					messageBody.append(reason);
-					messageBody.append("\n\n");
+					messageBody.append("\n");
 				}
 				messageBody.append(MESSAGE_SIGNATURE_LINE);
 				sendMessage(message, messageBody.toString());
