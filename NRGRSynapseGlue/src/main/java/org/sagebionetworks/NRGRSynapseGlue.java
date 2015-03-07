@@ -1,9 +1,11 @@
 package org.sagebionetworks;
 
+import static org.sagebionetworks.Util.getProperty;
+import static org.sagebionetworks.TokenUtil.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
@@ -50,11 +51,7 @@ import org.sagebionetworks.repo.model.table.RowSet;
 import org.sagebionetworks.repo.model.table.SelectColumn;
 
 public class NRGRSynapseGlue {
-	private static Properties properties = null;
-
 	private static final String MESSAGE_SUBJECT = "CommonMind Data Access Request";
-
-	private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
 	private static int BATCH_SIZE = 50;
 
@@ -75,13 +72,6 @@ public class NRGRSynapseGlue {
 	private static final String REASON_REJECTED = "Reason Rejected";
 
 	private static final long TABLE_UPDATE_TIMEOOUT = 10000L;
-
-	private static final String PART_SEPARATOR = "|";
-	private static final String REGEX_FOR_PART_SEPARATOR = "\\|";
-	
-
-	private static final String TOKEN_TERMINATOR = 
-			"===========================================================================";
 
 	private static final String REJECTION_REASON_LABEL = "rejectionReason";
 	
@@ -107,6 +97,7 @@ public class NRGRSynapseGlue {
 	public static void main(String[] args) throws Exception {
 		NRGRSynapseGlue sg = new NRGRSynapseGlue();
 		sg.processNewApplicants();
+		sg.checkForMail();
 		sg.approveApplicants();
 	}
 
@@ -150,7 +141,7 @@ public class NRGRSynapseGlue {
 		return new Pair<List<SelectColumn>, List<Row>>(qrb.getSelectColumns(), rows);
 	}
 	
-	private Pair<List<SelectColumn>, List<Row>> selectRowsForUsers(Collection<String> userIds) throws SynapseException, InterruptedException {
+	private Pair<List<SelectColumn>, List<Row>> selectRowsForUsers(Collection<Long> userIds) throws SynapseException, InterruptedException {
 		if (userIds.isEmpty()) {
 			return new Pair<List<SelectColumn>, List<Row>>(Collections.EMPTY_LIST, Collections.EMPTY_LIST);
 		}
@@ -166,12 +157,13 @@ public class NRGRSynapseGlue {
 		sb.append("\""+REASON_REJECTED+"\"");
 		sb.append(" FROM "+tableId+" WHERE "+USER_ID+" IN (");
 		boolean firstTime = true;
-		for (String userId : userIds) {
+		for (Long userId : userIds) {
 			if (firstTime) firstTime=false; else sb.append(",");
 			sb.append(userId);
 		}
 		sb.append(")");
-		return executeQuery(sb.toString(), tableId, userIds.size());
+		String sql = sb.toString();
+		return executeQuery(sql, tableId, userIds.size());
 	}
 
 	private static SelectColumn getColumnForName(List<SelectColumn> columns, String name)  {
@@ -203,9 +195,9 @@ public class NRGRSynapseGlue {
 					synapseClient.getOpenMembershipRequests(getProperty("APPLICATION_TEAM_ID"), 
 							null, PAGE_SIZE, offset);
 			total = pgs.getTotalNumberOfResults();
-			List<String> userIds = new ArrayList<String>();
+			List<Long> userIds = new ArrayList<Long>();
 			for (MembershipRequest mr : pgs.getResults()) {
-				userIds.add(mr.getUserId());
+				userIds.add(Long.parseLong(mr.getUserId()));
 			}
 			Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(userIds);
 			List<SelectColumn> columns = result.getFirst();
@@ -293,41 +285,6 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-	private String createToken(String userId) {
-		String unsignedToken = 
-				createUnsignedToken(
-						userId, 
-						getProperty("ACCESS_REQUIREMENT_ID"), 
-						""+System.currentTimeMillis());
-		return unsignedToken+hmac(unsignedToken);
-	}
-
-	private static String createUnsignedToken(String userId, String accessRequirementId, String epoch) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(userId+PART_SEPARATOR);
-		sb.append(accessRequirementId+PART_SEPARATOR);
-		sb.append(epoch+PART_SEPARATOR);
-		return sb.toString();
-	}
-
-	private static String hmac(String s) {
-		return new String(generateHMACSHA1SignatureFromBase64EncodedKey(s, getProperty("HMAC_SECRET_KEY")));
-	}
-
-	/**
-	 * Encodes data using a given BASE-64 Encoded HMAC-SHA1 secret key, base-64 encoding the result
-	 */
-	public static byte[] generateHMACSHA1SignatureFromBase64EncodedKey(String data, String base64EncodedSecretKey) {
-		byte[] secretKey = Base64.decodeBase64(base64EncodedSecretKey.getBytes());
-		try {
-			Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
-			mac.init(new SecretKeySpec(secretKey, HMAC_SHA1_ALGORITHM));
-			return Base64.encodeBase64(mac.doFinal(data.getBytes("UTF-8")));
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
 	private static String salutation(UserProfile up) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Dear ");
@@ -348,60 +305,26 @@ public class NRGRSynapseGlue {
 		sb.append(salutation(userProfile));
 		sb.append("\nAs part of your application for the CommonMind data access, you must include this message.\n");
 		sb.append("\n");
-		sb.append("\n"+TOKEN_TERMINATOR+"\n");
 		sb.append(token);
-		sb.append("\n"+TOKEN_TERMINATOR+"\n");
 		sb.append("\n");
 		sb.append("Note:  This token is valid for 14 days.\n");
 		sb.append(MESSAGE_SIGNATURE_LINE);
 		return sb.toString();
 	}
-
-	private static String parseTokenFromFile(File file) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		String result;
-		try {
-			result =  IOUtils.toString(fis);
-		} finally {
-			fis.close();
-		}
-		int leadingTerminator = result.indexOf(TOKEN_TERMINATOR);
-		if (leadingTerminator<0) throw new IllegalArgumentException("Submission contains no token boundary ('==....==').");
-		int tokenStart = leadingTerminator+TOKEN_TERMINATOR.length();
-		int trailingTerminator = result.indexOf(TOKEN_TERMINATOR, tokenStart);
-		if (trailingTerminator<0) throw new IllegalArgumentException("Two token boundaries ('==....==') expected but just one found.");
-		String token = result.substring(tokenStart, trailingTerminator).trim();
-		String[] tokenParts = token.split(REGEX_FOR_PART_SEPARATOR);
-		if (tokenParts.length!=4) throw new IllegalArgumentException("Token should contain four parts, but "+tokenParts.length+" found.");
-		String userId = tokenParts[0].trim();
-		String accessRequirementId = tokenParts[1].trim();
-		String epochString = tokenParts[2].trim();
-		String hmac = tokenParts[3].trim();
-		long epoch;
-		try {
-			epoch = Long.parseLong(epochString);
-		} catch (NumberFormatException e) {
-			throw new UserLinkedException(userId, "Illegal time stamp in message.", e);
-		}
-		long tokenTimeout = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
-		if (epoch+tokenTimeout<System.currentTimeMillis())
-			throw new UserLinkedException(userId, "Message timestamp has expired.");
-		String expectedAccessRequirementId = getProperty("ACCESS_REQUIREMENT_ID");
-		if (!accessRequirementId.equals(expectedAccessRequirementId))
-			throw new UserLinkedException(userId, "Expected access requirement ID "+expectedAccessRequirementId+
-					" but found "+accessRequirementId);
-		String recomputedHmac = hmac(createUnsignedToken(userId, accessRequirementId, epochString));
-		if (!hmac.equals(recomputedHmac)) throw new UserLinkedException(userId, "Message has an invalid digital signature.");
-		return userId;
+	
+	// convert incoming mail messages to Submission in the queue
+	public void checkForMail() throws Exception {
+		IMAPClient mailClient = new IMAPClient();
+		mailClient.processNewMessages(new SubmissionMessageHandler(synapseClient));
 	}
 
-	// 2) check for incoming email and if there is a valid attachment then approve them
+	// 3) check for incoming email and if there is a valid attachment then approve them
 	public void approveApplicants() throws Exception {
 		long total = Integer.MAX_VALUE;
 		String evaluationId = getProperty("EVALUATION_ID");
+		List<TokenContent> acceptedTokens = new ArrayList<TokenContent>();
 		List<SubmissionStatus> statusesToUpdate = new ArrayList<SubmissionStatus>();
-		List<String> acceptedUserIds = new ArrayList<String>();
-		Map<String,String> rejected = new HashMap<String,String>(); // key is userId, value is 'reason' message
+		Map<Long,String> rejected = new HashMap<Long,String>(); // key is userId, value is 'reason' message
 		int rejectedCount = 0;
 		for (int offset=0; offset<total; offset+=PAGE_SIZE) {
 			// get the newly RECEIVED Submissions
@@ -418,55 +341,80 @@ public class NRGRSynapseGlue {
 				SubmissionStatus status = bundle.getSubmissionStatus();
 				SubmissionStatusEnum newStatus = null;
 				try {
-					String userId = parseTokenFromFile(temp);
-					newStatus = SubmissionStatusEnum.ACCEPTED;
-					acceptedUserIds.add(userId);
-				} catch (IllegalArgumentException e) {
+					List<TokenAnalysisResult> tokenAnalysisResults = parseTokenFromFile(temp);
+					int validTokensInMessage = 0;
+					for (TokenAnalysisResult tar : tokenAnalysisResults) {
+						if(tar.isValid()) {
+							if (tar.getUserId()==null) {
+								// should never happen.  Will be caught and handled below
+								throw new IllegalStateException("Missing userId");
+							}
+							acceptedTokens.add(tar.getTokenContent());
+							validTokensInMessage++;
+						} else {
+							if (tar.getUserId()!=null) {
+								rejected.put(tar.getUserId(), tar.getReason());
+							}
+						}
+					}
+					if (validTokensInMessage>0) {
+						newStatus = SubmissionStatusEnum.CLOSED;
+					} else {
+						throw new Exception("No valid token found in file.");
+					}
+				} catch (Exception e) {
 					newStatus = SubmissionStatusEnum.REJECTED;
 					rejectedCount++;
 					addRejectionReasonToStatus(status, e.getMessage());
-					if (e instanceof UserLinkedException) {
-						UserLinkedException ule = (UserLinkedException)e;
-						rejected.put(ule.getUserId(), ule.getMessage());
-					}
 				}
 				status.setStatus(newStatus);
 				statusesToUpdate.add(status);
 			}
 		}
-		// Now we've gone through all the new submissions and know which ones we want to accept and reject
+		// Now we've gone through all the new submissions and know what users we want to accept and reject
+		Map<Long,TokenContent> acceptedUsers = new HashMap<Long,TokenContent>();
+		for (TokenContent tc : acceptedTokens) {
+			acceptedUsers.put(tc.getUserId(), tc);
+		}
 		
 		// filter the accepted list, removing users who have already been approved
-		Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(acceptedUserIds);	
-		Map<String,Row> acceptedAndNotYetApproved = new HashMap<String,Row>();
+		Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(acceptedUsers.keySet());	
+		List<String> acceptedAndNotYetApprovedUserIds = new ArrayList<String>();
+		List<Row> acceptedAndNotYetApprovedRows = new ArrayList<Row>();
+		List<TokenContent> acceptedAndNotYetApprovedTC = new ArrayList<TokenContent>();
 		Integer userIdIndex = null;
 		Integer approvedOrRejectedDateIndex = null;
 		Integer approvedIndex = null;
+		Integer reasonRejectedIndex = null;
 		if (!result.getSecond().isEmpty()) {
 			userIdIndex = getColumnIndexForName(result.getFirst(), USER_ID);
 			approvedOrRejectedDateIndex = getColumnIndexForName(result.getFirst(), APPROVED_OR_REJECTED_DATE);
 			approvedIndex = getColumnIndexForName(result.getFirst(), APPROVED);
+			reasonRejectedIndex = getColumnIndexForName(result.getFirst(), REASON_REJECTED);
 			for (Row row : result.getSecond()) {
 				String userId = row.getValues().get(userIdIndex);
 				String approvedString = row.getValues().get(approvedIndex);
 				if (approvedString==null || Boolean.valueOf(approvedString)==false) {
-					acceptedAndNotYetApproved.put(userId, row);
+					acceptedAndNotYetApprovedUserIds.add(userId);
+					acceptedAndNotYetApprovedTC.add(acceptedUsers.get(userId));
+					acceptedAndNotYetApprovedRows.add(row);
 				}
 			}
 		}
 		// if an ID is in acceptedUserIds but not in the Table, then something weird has happened
-		if (acceptedUserIds.size()!=result.getSecond().size()) {
-			System.out.println("Warning:  Found "+acceptedUserIds.size()+
+		if (acceptedUsers.size()!=result.getSecond().size()) {
+			System.out.println("Warning:  Found "+acceptedUsers.size()+
 					" valid token(s), but the number of Table rows matching the userIds is "+
 					result.getSecond().size());
 		}
 		
-		createAccessApprovals(acceptedAndNotYetApproved.keySet());
-		acceptTeamMembershipRequests(acceptedAndNotYetApproved.keySet());
+		createAccessApprovals(acceptedAndNotYetApprovedTC);
+		acceptTeamMembershipRequests(acceptedAndNotYetApprovedUserIds);
 		long now = System.currentTimeMillis();
-		for (Row row : acceptedAndNotYetApproved.values()) {
+		for (Row row : acceptedAndNotYetApprovedRows) {
 			row.getValues().set(approvedOrRejectedDateIndex, ""+now);
 			row.getValues().set(approvedIndex, Boolean.TRUE.toString());
+			row.getValues().set(reasonRejectedIndex, null);
 		}
 		
 		// now update the table to show that approval has been granted
@@ -475,33 +423,35 @@ public class NRGRSynapseGlue {
 			RowSet rowsToUpdate = new RowSet();
 			rowsToUpdate.setTableId(tableId);
 			rowsToUpdate.setHeaders(result.getFirst());
-			rowsToUpdate.setRows(new ArrayList<Row>(acceptedAndNotYetApproved.values()));
+			rowsToUpdate.setRows(new ArrayList<Row>(acceptedAndNotYetApprovedRows));
 			synapseClient.appendRowsToTable(rowsToUpdate, TABLE_UPDATE_TIMEOOUT, tableId);
 		}
 		
 		// filter list down to just the users that were not previously approved
 		// (That is, if you're already approved then a bad submission will not revoke
 		// your access.)
-		Map<String,String> confirmedRejected = updateTableForRejected(rejected, tableId);
+		Map<Long,String> confirmedRejected = updateTableForRejected(rejected, tableId);
 
 		updateSubmissionStatusBatch(evaluationId, statusesToUpdate);
-		sendApproveNotifications(acceptedAndNotYetApproved.keySet());
+		sendApproveNotifications(acceptedAndNotYetApprovedUserIds);
 		sendRejectionNotifications(confirmedRejected);
 		
 		System.out.println("Retrieved "+total+
-				" submissions for approval. Accepted "+acceptedUserIds.size()+
+				" submissions for approval. Accepted "+acceptedUsers.size()+
 				" and rejected "+rejectedCount+".");
 
 	}
 	
-	private void createAccessApprovals(Collection<String> userIds) throws SynapseException {
-		Long accessRequirementId = Long.parseLong(getProperty("ACCESS_REQUIREMENT_ID"));
-		for (String userId: userIds) {
-			ACTAccessApproval actAccessApproval = new ACTAccessApproval();
-			actAccessApproval.setAccessorId(userId);
-			actAccessApproval.setApprovalStatus(ACTApprovalStatus.APPROVED);
-			actAccessApproval.setRequirementId(accessRequirementId);
-			synapseClient.createAccessApproval(actAccessApproval);
+	private void createAccessApprovals(Collection<TokenContent> usersToApprove) throws SynapseException {
+		for (TokenContent tc: usersToApprove) {
+			long userId = tc.getUserId();
+			for (Long accessRequirementId : tc.getAccessRequirementIds()) {
+				ACTAccessApproval actAccessApproval = new ACTAccessApproval();
+				actAccessApproval.setAccessorId(""+userId);
+				actAccessApproval.setApprovalStatus(ACTApprovalStatus.APPROVED);
+				actAccessApproval.setRequirementId(accessRequirementId);
+				synapseClient.createAccessApproval(actAccessApproval);
+			}
 		}
 	}
 	
@@ -545,9 +495,9 @@ public class NRGRSynapseGlue {
 		stringAnnos.add(sa);
 	}
 	
-	private Map<String,String> updateTableForRejected(Map<String,String> rejected, String tableId) throws SynapseException, InterruptedException {
+	private Map<Long,String> updateTableForRejected(Map<Long,String> rejected, String tableId) throws SynapseException, InterruptedException {
 		Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(rejected.keySet());	
-		Map<String,String> confirmedRejected = new HashMap<String,String>();
+		Map<Long,String> confirmedRejected = new HashMap<Long,String>();
 		if (result.getSecond().isEmpty()) return confirmedRejected;
 		int userIdIndex = getColumnIndexForName(result.getFirst(), USER_ID);
 		int approvedOrRejectedDateIndex = getColumnIndexForName(result.getFirst(), APPROVED_OR_REJECTED_DATE);
@@ -560,7 +510,7 @@ public class NRGRSynapseGlue {
 			if (approvedString!=null && Boolean.valueOf(approvedString)) {
 				continue; // if you're already approved, then a bad submission won't cause you to be rejected
 			}
-			String userId = values.get(userIdIndex);
+			Long userId = Long.parseLong(values.get(userIdIndex));
 			if (rejected.keySet().contains(userId)) {
 				values.set(approvedOrRejectedDateIndex, ""+now);
 				String reason = rejected.get(userId);
@@ -595,14 +545,14 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-	private void sendRejectionNotifications(Map<String,String> rejected) {
-		for (String userId : rejected.keySet()) {
+	private void sendRejectionNotifications(Map<Long,String> rejected) {
+		for (Long userId : rejected.keySet()) {
 			String reason = rejected.get(userId);
 			try {
-				UserProfile userProfile = synapseClient.getUserProfile(userId);
+				UserProfile userProfile = synapseClient.getUserProfile(""+userId);
 				MessageToUser message = new MessageToUser();
 				message.setSubject("Common Mind Data Access Declined");
-				message.setRecipients(Collections.singleton(userId));
+				message.setRecipients(Collections.singleton(""+userId));
 				StringBuilder messageBody = new StringBuilder();
 				messageBody.append(salutation(userProfile));
 				messageBody.append("\nYour request for access to the Common Mind data has been declined.\n");
@@ -674,33 +624,6 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-
-	public static void initProperties() {
-		if (properties!=null) return;
-		properties = new Properties();
-		InputStream is = null;
-		try {
-			is = NRGRSynapseGlue.class.getClassLoader().getResourceAsStream("global.properties");
-			properties.load(is);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} finally {
-			if (is!=null) try {
-				is.close();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	public static String getProperty(String key) {
-		initProperties();
-		String commandlineOption = System.getProperty(key);
-		if (commandlineOption!=null) return commandlineOption;
-		String embeddedProperty = properties.getProperty(key);
-		if (embeddedProperty!=null) return embeddedProperty;
-		throw new RuntimeException("Cannot find value for "+key);
-	}	
 
 	private static SynapseClient createSynapseClient() {
 		SynapseClientImpl scIntern = new SynapseClientImpl();
