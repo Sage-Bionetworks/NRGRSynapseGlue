@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -24,15 +26,24 @@ public class TokenUtil {
 	
 	private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
-	private static final String TOKEN_TERMINATOR = 
+	public static final String TOKEN_TERMINATOR = 
 			"=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============";
 
+	private static List<Long> arIdsFromArString(String accessRequirementIdString) {
+		List<Long> accessRequirementIds = new ArrayList<Long>();
+		for (String arString : accessRequirementIdString.split(ACCESS_REQUIREMENT_ID_SEPARATOR)) {
+				accessRequirementIds.add(Long.parseLong(arString));
+		}
+		return accessRequirementIds;
+	}
 
 	public static String createToken(String userId) {
+		String arString = getProperty("ACCESS_REQUIREMENT_IDS");
+		List<Long> ars = arIdsFromArString(arString);
 		String unsignedToken = 
 				createUnsignedToken(
 						userId, 
-						getProperty("ACCESS_REQUIREMENT_IDS"), 
+						ars, 
 						""+System.currentTimeMillis());
 		
 		return "\n"+TOKEN_TERMINATOR+"\n"+
@@ -40,10 +51,12 @@ public class TokenUtil {
 				"\n"+TOKEN_TERMINATOR+"\n";
 	}
 
-	public static String createUnsignedToken(String userId, String accessRequirementId, String epoch) {
+	public static String createUnsignedToken(String userId, List<Long> accessRequirementIds, String epoch) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PART_SEPARATOR+userId+PART_SEPARATOR);
-		sb.append(accessRequirementId+PART_SEPARATOR);
+		String arString = accessRequirementIds.toString();
+		arString = arString.substring(1,arString.length()-1);
+		sb.append(arString+PART_SEPARATOR);
 		sb.append(epoch+PART_SEPARATOR);
 		return sb.toString();
 	}
@@ -71,7 +84,7 @@ public class TokenUtil {
 	private static final int TIMESTAMP_TOKEN_INDEX = 3;
 	private static final int HMAC_TOKEN_INDEX = 4;
 
-	public static List<TokenAnalysisResult> parseTokenFromFile(File file) throws IOException {
+	public static Set<TokenAnalysisResult> parseTokenFromFile(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		String fileContent;
 		try {
@@ -82,15 +95,18 @@ public class TokenUtil {
 		return parseTokensFromFileContent(fileContent);
 	}
 	
-	public static List<TokenAnalysisResult> parseTokensFromFileContent(String fileContent) throws IOException {
-		List<TokenAnalysisResult> result = new ArrayList<TokenAnalysisResult>();
+	/*
+	 * Since a message may include the same content multiple times (e.g. as plain text
+	 * and html) we combine the extracted tokens in a Set to eliminate duplicates)
+	 */
+	public static Set<TokenAnalysisResult> parseTokensFromFileContent(String fileContent) throws IOException {
+		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 		int start = 0;
 		int leadingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, start);
 		while (leadingTerminator>=0) {
 			int tokenStart = leadingTerminator+TOKEN_TERMINATOR.length();
 			int trailingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, tokenStart);
 			if (trailingTerminator<0) { 
-				//throw new IllegalArgumentException("Two token boundaries ('==....==') expected but just one found.");
 				break;
 			} else {
 				result.add(parseToken( fileContent.substring(tokenStart, trailingTerminator).trim()));
@@ -98,7 +114,6 @@ public class TokenUtil {
 			}
 			leadingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, start);
 		} 
-		//if (leadingTerminator<0) throw new IllegalArgumentException("Submission contains no token boundary ('==....==').");
 		return result;
 	}
 	
@@ -133,18 +148,16 @@ public class TokenUtil {
 		long tokenTimeout = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
 		if (epoch+tokenTimeout<System.currentTimeMillis())
 			return createFailedTokenAnalysisResult(userId, "Message timestamp has expired. Please contact the Synapse Access and Compliance Team, act@sagebase.org ");
-		List<Long> accessRequirementIds = new ArrayList<Long>();
-		for (String arString : accessRequirementIdString.split(ACCESS_REQUIREMENT_ID_SEPARATOR)) {
-			try {
-				accessRequirementIds.add(Long.parseLong(arString));
-			} catch (NumberFormatException e) {
-				return createFailedTokenAnalysisResult(userId, "Bad Access Requirement ID: "+arString);
-			}
-		}
 
-		String recomputedHmac = hmac(createUnsignedToken(""+userId, accessRequirementIdString, epochString));
+		List<Long> accessRequirementIds = null;
+		try {
+			accessRequirementIds = arIdsFromArString(accessRequirementIdString);
+		} catch (NumberFormatException e) {
+			return createFailedTokenAnalysisResult(userId, "Bad Access Requirement ID list: "+accessRequirementIdString);
+		}
+		String recomputedHmac = hmac(createUnsignedToken(""+userId, accessRequirementIds, epochString));
 		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature.");
 		return new TokenAnalysisResult(new TokenContent(userId, accessRequirementIds, new Date(epoch)), true, userId, null);
 	}
-
+	
 }

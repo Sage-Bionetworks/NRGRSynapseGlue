@@ -1,10 +1,10 @@
 package org.sagebionetworks;
 
+import static org.sagebionetworks.TokenUtil.createToken;
+import static org.sagebionetworks.TokenUtil.parseTokenFromFile;
 import static org.sagebionetworks.Util.getProperty;
-import static org.sagebionetworks.TokenUtil.*;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -14,14 +14,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,11 +73,10 @@ public class NRGRSynapseGlue {
 	private static final long TABLE_UPDATE_TIMEOOUT = 10000L;
 
 	private static final String REJECTION_REASON_LABEL = "rejectionReason";
-	
+
 	private static final int BATCH_UPLOAD_RETRY_COUNT = 3;
 
 	private SynapseClient synapseClient;
-
 
 	/*
 	 * Parameters:
@@ -140,7 +138,7 @@ public class NRGRSynapseGlue {
 				"Queried for "+queryLimit+" users but got back "+ rows.size()+" and total count: "+qrb.getQueryCount());
 		return new Pair<List<SelectColumn>, List<Row>>(qrb.getSelectColumns(), rows);
 	}
-	
+
 	private Pair<List<SelectColumn>, List<Row>> selectRowsForUsers(Collection<Long> userIds) throws SynapseException, InterruptedException {
 		if (userIds.isEmpty()) {
 			return new Pair<List<SelectColumn>, List<Row>>(Collections.EMPTY_LIST, Collections.EMPTY_LIST);
@@ -201,9 +199,11 @@ public class NRGRSynapseGlue {
 			}
 			Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(userIds);
 			List<SelectColumn> columns = result.getFirst();
-			if (columns.size()!=COLUMN_COUNT) throw new IllegalStateException();
 			List<Row> rows = result.getSecond();
-			
+			if (rows.size()==0) continue; // no results to process 
+
+			if (columns.size()!=COLUMN_COUNT) throw new IllegalStateException(""+columns.size()+"!="+COLUMN_COUNT);
+
 			appendOrderedColumns = Arrays.asList(new SelectColumn[]{
 					getColumnForName(columns, USER_ID),
 					getColumnForName(columns, USER_NAME),
@@ -213,7 +213,7 @@ public class NRGRSynapseGlue {
 					getColumnForName(columns, APPROVED_OR_REJECTED_DATE),
 					getColumnForName(columns, APPROVED),
 					getColumnForName(columns, REASON_REJECTED)
-					
+
 			});
 			rowSet.setHeaders(appendOrderedColumns);
 
@@ -268,15 +268,17 @@ public class NRGRSynapseGlue {
 						null,
 						null,
 						null
-					}));
+				}));
 				applicantsProcessed.add(applicantProcessed);
 			}
 		}
 		// update table to show that the email was sent
 		System.out.println("Appending "+applicantsProcessed.size()+" rows to Table.");
-		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, tableId);
+		if (applicantsProcessed.size()>0) {
+			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, tableId);
+		}
 	}
-	
+
 	private void sendMessage(MessageToUser messageToUser, String messageBody) throws SynapseException {
 		if (true) {
 			synapseClient.sendStringMessage(messageToUser, messageBody);
@@ -297,7 +299,7 @@ public class NRGRSynapseGlue {
 		sb.append(":\n");
 		return sb.toString();
 	}
-	
+
 	private static final String MESSAGE_SIGNATURE_LINE = "\nSincerely,\n\nSynapse Access and Compliance Team";
 
 	private static String createTokenMessage(UserProfile userProfile, String token) {
@@ -311,7 +313,7 @@ public class NRGRSynapseGlue {
 		sb.append(MESSAGE_SIGNATURE_LINE);
 		return sb.toString();
 	}
-	
+
 	// convert incoming mail messages to Submission in the queue
 	public void checkForMail() throws Exception {
 		IMAPClient mailClient = new IMAPClient();
@@ -341,7 +343,13 @@ public class NRGRSynapseGlue {
 				SubmissionStatus status = bundle.getSubmissionStatus();
 				SubmissionStatusEnum newStatus = null;
 				try {
-					List<TokenAnalysisResult> tokenAnalysisResults = parseTokenFromFile(temp);
+
+					MimeMessage message = MessageUtil.readMessageFromFile(temp);
+					// TODO ACT doesn't need to send validated email
+					if (!SMIMEValidator.isAValidSMIMESignedMessage(message)) {
+						throw new Exception("Message does not have a valid S/MIME signature.");
+					}
+					Set<TokenAnalysisResult> tokenAnalysisResults = parseTokenFromFile(temp);
 					int validTokensInMessage = 0;
 					for (TokenAnalysisResult tar : tokenAnalysisResults) {
 						if(tar.isValid()) {
@@ -376,7 +384,7 @@ public class NRGRSynapseGlue {
 		for (TokenContent tc : acceptedTokens) {
 			acceptedUsers.put(tc.getUserId(), tc);
 		}
-		
+
 		// filter the accepted list, removing users who have already been approved
 		Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(acceptedUsers.keySet());	
 		List<String> acceptedAndNotYetApprovedUserIds = new ArrayList<String>();
@@ -407,7 +415,7 @@ public class NRGRSynapseGlue {
 					" valid token(s), but the number of Table rows matching the userIds is "+
 					result.getSecond().size());
 		}
-		
+
 		createAccessApprovals(acceptedAndNotYetApprovedTC);
 		acceptTeamMembershipRequests(acceptedAndNotYetApprovedUserIds);
 		long now = System.currentTimeMillis();
@@ -416,7 +424,7 @@ public class NRGRSynapseGlue {
 			row.getValues().set(approvedIndex, Boolean.TRUE.toString());
 			row.getValues().set(reasonRejectedIndex, null);
 		}
-		
+
 		// now update the table to show that approval has been granted
 		String tableId = getProperty("TABLE_ID");
 		{
@@ -426,7 +434,7 @@ public class NRGRSynapseGlue {
 			rowsToUpdate.setRows(new ArrayList<Row>(acceptedAndNotYetApprovedRows));
 			synapseClient.appendRowsToTable(rowsToUpdate, TABLE_UPDATE_TIMEOOUT, tableId);
 		}
-		
+
 		// filter list down to just the users that were not previously approved
 		// (That is, if you're already approved then a bad submission will not revoke
 		// your access.)
@@ -435,13 +443,13 @@ public class NRGRSynapseGlue {
 		updateSubmissionStatusBatch(evaluationId, statusesToUpdate);
 		sendApproveNotifications(acceptedAndNotYetApprovedUserIds);
 		sendRejectionNotifications(confirmedRejected);
-		
+
 		System.out.println("Retrieved "+total+
 				" submissions for approval. Accepted "+acceptedUsers.size()+
 				" and rejected "+rejectedCount+".");
 
 	}
-	
+
 	private void createAccessApprovals(Collection<TokenContent> usersToApprove) throws SynapseException {
 		for (TokenContent tc: usersToApprove) {
 			long userId = tc.getUserId();
@@ -454,7 +462,7 @@ public class NRGRSynapseGlue {
 			}
 		}
 	}
-	
+
 	private void acceptTeamMembershipRequests(Collection<String> userIds) throws SynapseException {
 		long total = Integer.MAX_VALUE;
 		String teamId = getProperty("APPLICATION_TEAM_ID");
@@ -470,7 +478,7 @@ public class NRGRSynapseGlue {
 			}
 		}
 	}
-	
+
 	private static void addRejectionReasonToStatus(SubmissionStatus status, String reason) {
 		Annotations a = status.getAnnotations();
 		if (a==null) {
@@ -494,7 +502,7 @@ public class NRGRSynapseGlue {
 		sa.setValue(reason);
 		stringAnnos.add(sa);
 	}
-	
+
 	private Map<Long,String> updateTableForRejected(Map<Long,String> rejected, String tableId) throws SynapseException, InterruptedException {
 		Pair<List<SelectColumn>, List<Row>> result = selectRowsForUsers(rejected.keySet());	
 		Map<Long,String> confirmedRejected = new HashMap<Long,String>();
@@ -525,7 +533,7 @@ public class NRGRSynapseGlue {
 		synapseClient.appendRowsToTable(rowsToUpdate, TABLE_UPDATE_TIMEOOUT, tableId);
 		return confirmedRejected;
 	}
-	
+
 	private void sendApproveNotifications(Collection<String> userIds) {
 		for (String userId : userIds) {
 			try {

@@ -21,6 +21,7 @@ import static javax.mail.Folder.READ_ONLY;
 import static org.sagebionetworks.Util.getProperty;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.Security;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -39,6 +41,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.URLName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpException;
 import org.apache.http.NameValuePair;
@@ -71,15 +74,32 @@ public class IMAPClient {
 
 	private IMAPStore imapStore;
 	
-	public static void main(String[] args) throws Exception {
-		IMAPClient imapClient = new IMAPClient();
-		imapClient.processNewMessages(new MessageHandler() {
-
-			@Override
-			public void handleMessageContent(byte[] messageContent) {
-				System.out.println("Found message of length "+messageContent.length);
-			}});
-	}
+//	public static void main(String[] args) throws Exception {
+//		IMAPClient imapClient = new IMAPClient();
+//		imapClient.processNewMessages(new MessageHandler() {
+//			
+//
+//			@Override
+//			public void handleMessageContent(byte[] messageContent) {
+//				Random random = new Random();
+//				FileOutputStream fos = null;
+//				try {
+//					System.out.println("Found message of length "+messageContent.length);
+//					fos = new FileOutputStream(
+//							"/Users/bhoff/Documents/NRGRSynapseGlue/NRGRSynapseGlue/src/test/resources/"+
+//							Math.abs(random.nextLong()));
+//					IOUtils.write(messageContent, fos);
+//				} catch (IOException e) {
+//					throw new RuntimeException(e);
+//				} finally {
+//					try {
+//						if (fos!=null) fos.close();
+//					} catch (IOException e) {
+//						throw new RuntimeException(e);
+//					}
+//				}
+//			}});
+//	}
 
 	/**
 	 * Check for new messages in the 'in-folder'.

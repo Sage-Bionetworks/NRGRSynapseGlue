@@ -8,7 +8,7 @@ public class Util {
 	private static Properties properties = null;
 
 	
-	public static void initProperties() {
+	private static void initProperties() {
 		if (properties!=null) return;
 		properties = new Properties();
 		InputStream is = null;
