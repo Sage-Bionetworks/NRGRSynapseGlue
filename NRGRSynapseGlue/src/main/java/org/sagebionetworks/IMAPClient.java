@@ -74,33 +74,6 @@ public class IMAPClient {
 
 	private IMAPStore imapStore;
 	
-//	public static void main(String[] args) throws Exception {
-//		IMAPClient imapClient = new IMAPClient();
-//		imapClient.processNewMessages(new MessageHandler() {
-//			
-//
-//			@Override
-//			public void handleMessageContent(byte[] messageContent) {
-//				Random random = new Random();
-//				FileOutputStream fos = null;
-//				try {
-//					System.out.println("Found message of length "+messageContent.length);
-//					fos = new FileOutputStream(
-//							"/Users/bhoff/Documents/NRGRSynapseGlue/NRGRSynapseGlue/src/test/resources/"+
-//							Math.abs(random.nextLong()));
-//					IOUtils.write(messageContent, fos);
-//				} catch (IOException e) {
-//					throw new RuntimeException(e);
-//				} finally {
-//					try {
-//						if (fos!=null) fos.close();
-//					} catch (IOException e) {
-//						throw new RuntimeException(e);
-//					}
-//				}
-//			}});
-//	}
-
 	/**
 	 * Check for new messages in the 'in-folder'.
 	 * Retrieve all the new messages and pass each one to the given 
@@ -121,7 +94,7 @@ public class IMAPClient {
 			handler.handleMessageContent(message);
 			msgNumbers[i++] = msgNum;
 		}
-//		if (outFolder!=null) moveMessages(inFolder, outFolder, msgNumbers); // TODO reenable this!
+		if (outFolder!=null) moveMessages(inFolder, outFolder, msgNumbers);
 	}
 
 

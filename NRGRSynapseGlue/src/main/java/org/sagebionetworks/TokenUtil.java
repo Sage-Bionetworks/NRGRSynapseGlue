@@ -32,7 +32,7 @@ public class TokenUtil {
 	private static List<Long> arIdsFromArString(String accessRequirementIdString) {
 		List<Long> accessRequirementIds = new ArrayList<Long>();
 		for (String arString : accessRequirementIdString.split(ACCESS_REQUIREMENT_ID_SEPARATOR)) {
-				accessRequirementIds.add(Long.parseLong(arString));
+				accessRequirementIds.add(Long.parseLong(arString.trim()));
 		}
 		return accessRequirementIds;
 	}
