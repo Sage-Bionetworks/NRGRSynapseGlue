@@ -18,7 +18,7 @@ public class MessageUtilTest {
 	public void testReadMessageFromInputStream() throws Exception {
 		InputStream is = null;
 		try {
-			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("samplemime");
+			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("sample_mime.txt");
 			MimeMessage message = MessageUtil.readMessageFromInputStream(is);
 			assertTrue(message.getContent() instanceof MimeMultipart);
 			MimeMultipart mmp = (MimeMultipart)message.getContent();
@@ -30,7 +30,7 @@ public class MessageUtilTest {
 				assertTrue(content.indexOf("this is a test MIME message")>=0);
 			}
 		} finally {
-			is.close();
+			if (is!=null) is.close();
 		}
 	}
 

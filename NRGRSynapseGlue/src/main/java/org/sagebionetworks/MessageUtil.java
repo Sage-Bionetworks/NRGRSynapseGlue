@@ -12,17 +12,13 @@ import javax.mail.internet.MimeMessage;
 
 public class MessageUtil {
 
-	public static MimeMessage readMessageFromInputStream(InputStream is) throws IOException {
+	public static MimeMessage readMessageFromInputStream(InputStream is) throws IOException, MessagingException {
 		Properties props = new Properties();
 		Session session = Session.getInstance(props);
-		try {
-			return new MimeMessage(session, is);
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		}
+		return new MimeMessage(session, is);
 	}
 	
-	public static MimeMessage readMessageFromFile(File file) throws IOException {
+	public static MimeMessage readMessageFromFile(File file) throws IOException, MessagingException {
 		InputStream is = new FileInputStream(file);
 		try {
 			return readMessageFromInputStream(is);

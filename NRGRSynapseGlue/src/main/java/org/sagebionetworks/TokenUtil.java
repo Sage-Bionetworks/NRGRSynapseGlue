@@ -2,8 +2,7 @@ package org.sagebionetworks;
 
 import static org.sagebionetworks.Util.getProperty;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,9 +13,12 @@ import java.util.Set;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 
 public class TokenUtil {
 	private static final String PART_SEPARATOR = "|";
@@ -84,35 +86,64 @@ public class TokenUtil {
 	private static final int TIMESTAMP_TOKEN_INDEX = 3;
 	private static final int HMAC_TOKEN_INDEX = 4;
 
-	public static Set<TokenAnalysisResult> parseTokenFromFile(File file) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		String fileContent;
+	/*
+	 * The input could be either a serialized MimeMessage or just a plain file containing
+	 * one or more tokens.
+	 */
+	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in) throws IOException {
+		// first, just treat the input stream as a plain file
+		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
+		result.addAll(parseTokensFromString(new String(in)));
+		// now treat it as a serialized message
+		// we may find the same tokens, or we may find ones not previously found
+		// (e.g. if they were in an encoded attachment)
+		// since the result is a Set, any repeats will be eliminated.
 		try {
-			fileContent =  IOUtils.toString(fis);
-		} finally {
-			fis.close();
+			MimeMessage message = MessageUtil.readMessageFromInputStream(new ByteArrayInputStream(in));
+			result.addAll(parseTokensFromMessageContent(message.getContent()));
+		} catch (MessagingException e) {
+			// this is the case if the content is not a serialized message
 		}
-		return parseTokensFromFileContent(fileContent);
+		return result;
 	}
-	
+
+	/*
+	 * This function accomodates Multiparts within Multiparts by using recursion
+	 */
+	private static Set<TokenAnalysisResult> parseTokensFromMessageContent(Object content) throws IOException, MessagingException {
+		if (content instanceof String) {
+			return parseTokensFromString((String)content);
+		} else if (content instanceof MimeMultipart) {
+			Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
+			MimeMultipart mmp = (MimeMultipart) content;
+			for (int i=0; i<mmp.getCount(); i++) {
+				BodyPart bodyPart = mmp.getBodyPart(i);
+				result.addAll(parseTokensFromMessageContent(bodyPart.getContent()));
+			}
+			return result;
+		} else {
+			throw new RuntimeException("Unexpected content type "+content.getClass());
+		}
+	}
+
 	/*
 	 * Since a message may include the same content multiple times (e.g. as plain text
 	 * and html) we combine the extracted tokens in a Set to eliminate duplicates)
 	 */
-	public static Set<TokenAnalysisResult> parseTokensFromFileContent(String fileContent) throws IOException {
+	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent) throws IOException {
 		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 		int start = 0;
-		int leadingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, start);
+		int leadingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, start);
 		while (leadingTerminator>=0) {
 			int tokenStart = leadingTerminator+TOKEN_TERMINATOR.length();
-			int trailingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, tokenStart);
+			int trailingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, tokenStart);
 			if (trailingTerminator<0) { 
 				break;
 			} else {
-				result.add(parseToken( fileContent.substring(tokenStart, trailingTerminator).trim()));
+				result.add(parseToken( messageContent.substring(tokenStart, trailingTerminator).trim()));
 				start = trailingTerminator+TOKEN_TERMINATOR.length();
 			}
-			leadingTerminator = fileContent.indexOf(TOKEN_TERMINATOR, start);
+			leadingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, start);
 		} 
 		return result;
 	}

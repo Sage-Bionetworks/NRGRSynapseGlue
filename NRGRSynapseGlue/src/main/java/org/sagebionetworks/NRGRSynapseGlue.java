@@ -1,11 +1,13 @@
 package org.sagebionetworks;
 
 import static org.sagebionetworks.TokenUtil.createToken;
-import static org.sagebionetworks.TokenUtil.parseTokenFromFile;
+import static org.sagebionetworks.TokenUtil.parseTokensFromInput;
 import static org.sagebionetworks.Util.getProperty;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ import javax.crypto.SecretKey;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -351,7 +354,6 @@ public class NRGRSynapseGlue {
 	// ACT members may submit tokens to the Evaluation queue.  In that case
 	// we do not have to validate S/MIME signature
 	private boolean canBypassMessageValidation(String submissionCreatorId, String myOwnId) throws SynapseException {
-		if (true) return true; // TODO remove this TEMPORARY FOR TESTING ONLY
 		// don't do this override if the creator is the cron job service account
 		if (submissionCreatorId.equals(myOwnId)) return false;
 		TeamMembershipStatus tms = 
@@ -383,6 +385,7 @@ public class NRGRSynapseGlue {
 
 				SubmissionStatus status = bundle.getSubmissionStatus();
 				SubmissionStatusEnum newStatus = null;
+				InputStream fileIs = null;
 				try {
 					
 					if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
@@ -391,8 +394,9 @@ public class NRGRSynapseGlue {
 							throw new Exception("Message does not have a valid S/MIME signature.");
 						}						
 					}
-
-					Set<TokenAnalysisResult> tokenAnalysisResults = parseTokenFromFile(temp);
+					
+					fileIs = new FileInputStream(temp);
+					Set<TokenAnalysisResult> tokenAnalysisResults = parseTokensFromInput(IOUtils.toByteArray(fileIs));
 					int validTokensInMessage = 0;
 					for (TokenAnalysisResult tar : tokenAnalysisResults) {
 						if(tar.isValid()) {
@@ -417,6 +421,8 @@ public class NRGRSynapseGlue {
 					newStatus = SubmissionStatusEnum.REJECTED;
 					rejectedCount++;
 					addRejectionReasonToStatus(status, e.getMessage());
+				} finally {
+					if (fileIs!=null) fileIs.close();
 				}
 				status.setStatus(newStatus);
 				statusesToUpdate.add(status);
@@ -488,8 +494,8 @@ public class NRGRSynapseGlue {
 		sendRejectionNotifications(confirmedRejected);
 
 		System.out.println("Retrieved "+total+
-				" submissions for approval. Accepted "+acceptedUsers.size()+
-				" and rejected "+rejectedCount+".");
+				" submissions for approval and rejected "+rejectedCount+". Accepted "+acceptedUsers.size()+
+				" users and rejected "+confirmedRejected.size()+".");
 
 	}
 
