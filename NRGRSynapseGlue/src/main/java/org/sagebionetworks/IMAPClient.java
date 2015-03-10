@@ -171,7 +171,7 @@ public class IMAPClient {
 		System.out.println("getMessages: messageCount="+folder.getMessageCount());
 		try {
 			for (int i=0; i<folder.getMessageCount(); i++) {
-				int msgNum = i+1;
+				Integer msgNum = i+1;
 				Message message = folder.getMessage(msgNum);
 				// write the content to a byte array
 				{
@@ -180,7 +180,7 @@ public class IMAPClient {
 						message.writeTo(baos);
 						baos.flush();
 						byte[] bytes = baos.toByteArray();
-						ans.put(new Integer(i), bytes);
+						ans.put(msgNum, bytes);
 					} finally {
 						baos.close();
 					}

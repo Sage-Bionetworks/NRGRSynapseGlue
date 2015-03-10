@@ -2,6 +2,7 @@ package org.sagebionetworks;
 
 import static org.sagebionetworks.Util.getProperty;
 
+import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.evaluation.model.Submission;
@@ -23,7 +24,7 @@ public class SubmissionMessageHandler implements MessageHandler {
 		String evaluationId = getProperty("EVALUATION_ID"); 
 		try {
 			// upload to Synapse
-			String fileHandleId = synapseClient.uploadToFileHandle(messageContent, null, messageParentId);
+			String fileHandleId = synapseClient.uploadToFileHandle(messageContent, ContentType.TEXT_PLAIN, messageParentId);
 			FileEntity fileEntity = new FileEntity();
 			fileEntity.setDataFileHandleId(fileHandleId);
 			fileEntity.setParentId(messageParentId);
@@ -31,6 +32,7 @@ public class SubmissionMessageHandler implements MessageHandler {
 			// submit to an evaluation queue
 			Submission submission = new Submission();
 			submission.setEntityId(fileEntity.getId());
+			submission.setVersionNumber(fileEntity.getVersionNumber());
 			submission.setEvaluationId(evaluationId);
 			submission = synapseClient.createIndividualSubmission(submission, fileEntity.getEtag());
 		} catch (SynapseException e) {
