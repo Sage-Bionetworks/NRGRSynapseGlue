@@ -1,0 +1,118 @@
+Delivered-To: synapse@sagebase.org
+Received: by 10.36.74.143 with SMTP id k137csp1715541itb;
+        Mon, 9 Mar 2015 20:53:43 -0700 (PDT)
+X-Received: by 10.236.189.243 with SMTP id c79mr13013914yhn.107.1425959622627;
+        Mon, 09 Mar 2015 20:53:42 -0700 (PDT)
+Return-Path: <nrgrlink+bncBDT7ZUEJVEHBBRWV7GTQKGQE7YWK42Y@sagebase.org>
+Received: from mail-yh0-f70.google.com (mail-yh0-f70.google.com. [209.85.213.70])
+        by mx.google.com with ESMTPS id 29si12032020yhx.172.2015.03.09.20.53.42
+        for <synapse@sagebase.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 09 Mar 2015 20:53:42 -0700 (PDT)
+Received-SPF: pass (google.com: domain of nrgrlink+bncBDT7ZUEJVEHBBRWV7GTQKGQE7YWK42Y@sagebase.org designates 209.85.213.70 as permitted sender) client-ip=209.85.213.70;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of nrgrlink+bncBDT7ZUEJVEHBBRWV7GTQKGQE7YWK42Y@sagebase.org designates 209.85.213.70 as permitted sender) smtp.mail=nrgrlink+bncBDT7ZUEJVEHBBRWV7GTQKGQE7YWK42Y@sagebase.org
+Received: by yhaf73 with SMTP id f73sf100718438yha.2
+        for <synapse@sagebase.org>; Mon, 09 Mar 2015 20:53:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20130820;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to
+         :content-type:x-original-sender:x-original-authentication-results
+         :precedence:mailing-list:list-id:list-post:list-help:list-archive
+         :list-unsubscribe;
+        bh=C0siSrHr/Qb1YIBMWYm8BiHbH4/Gs/bVI/arK5CQg1w=;
+        b=J3ZJfuxX44mE3GMggPqiqxtRIcgKCtX4JK73YRp0nZg3whE4yANZ5bjf0dL/OtV9AU
+         s4Fzk4IJQcpSUmFfPGT1OSOEVbxtGhc3Py8sxpey4ZLreGJDZrLvXtQDVPRUuwXIhLQf
+         bUWh/OoIPTaMTMNlHVMfFFIgm1Zn9vBpKOH6c938OjT9EHJVWVzaNN9LduvD5YA8LiV4
+         pRQlliVgK5ejpJq5D2FaWo7d9UMkXaQMvi61Sgh9gspwS0nu2tmjwjspNabBdinKxe/t
+         yF3gGBBJbjfeCFBsdQ6uV07NdEhO3J1givwqTmKwPv2D1bqGcH8rHeDQTz8xzyuEQFvO
+         9tCA==
+X-Gm-Message-State: ALoCoQn7/spPt1FIjGuZZCR2WJ4SxDkEEA94NMM+WCg4QJryGPXo65ent+Q1tKOL3s1tcyb3J6eX
+X-Received: by 10.236.207.68 with SMTP id m44mr19854068yho.25.1425959622048;
+        Mon, 09 Mar 2015 20:53:42 -0700 (PDT)
+X-BeenThere: nrgrlink@sagebase.org
+Received: by 10.182.134.201 with SMTP id pm9ls629725obb.80.gmail; Mon, 09 Mar
+ 2015 20:53:41 -0700 (PDT)
+X-Received: by 10.60.16.168 with SMTP id h8mr5403277oed.4.1425959621891;
+        Mon, 09 Mar 2015 20:53:41 -0700 (PDT)
+Received: from mail-ob0-f175.google.com (mail-ob0-f175.google.com. [209.85.214.175])
+        by mx.google.com with ESMTPS id mz11si12504331obc.73.2015.03.09.20.53.41
+        for <nrgrlink@sagebase.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 09 Mar 2015 20:53:41 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bruce.hoff@sagebase.org designates 209.85.214.175 as permitted sender) client-ip=209.85.214.175;
+Received: by obcwp18 with SMTP id wp18so26805720obc.1
+        for <nrgrlink@sagebase.org>; Mon, 09 Mar 2015 20:53:41 -0700 (PDT)
+MIME-Version: 1.0
+X-Received: by 10.182.61.41 with SMTP id m9mr10405234obr.6.1425959621584; Mon,
+ 09 Mar 2015 20:53:41 -0700 (PDT)
+Received: by 10.76.83.42 with HTTP; Mon, 9 Mar 2015 20:53:41 -0700 (PDT)
+Date: Mon, 9 Mar 2015 20:53:41 -0700
+Message-ID: <CAAeMkWs7QOQUiL2_cvkFkeM64Vy7M=moz9M+xwMuw2Q+kcfkLQ@mail.gmail.com>
+Subject: integration test
+From: Bruce Hoff <bruce.hoff@sagebase.org>
+To: nrgrLink <nrgrlink@sagebase.org>
+Content-Type: multipart/mixed; boundary=e89a8fb1f22cb68a5e0510e71867
+X-Original-Sender: bruce.hoff@sagebase.org
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com:
+ domain of bruce.hoff@sagebase.org designates 209.85.214.175 as permitted
+ sender) smtp.mail=bruce.hoff@sagebase.org
+Precedence: list
+Mailing-list: list nrgrlink@sagebase.org; contact nrgrlink+owners@sagebase.org
+List-ID: <nrgrlink.sagebase.org>
+X-Google-Group-Id: 957723499801
+List-Post: <http://groups.google.com/a/sagebase.org/group/nrgrlink/post>, <mailto:nrgrlink@sagebase.org>
+List-Help: <http://support.google.com/a/sagebase.org/bin/topic.py?topic=25838>,
+ <mailto:nrgrlink+help@sagebase.org>
+List-Archive: <http://groups.google.com/a/sagebase.org/group/nrgrlink/>
+List-Unsubscribe: <mailto:googlegroups-manage+957723499801+unsubscribe@googlegroups.com>,
+ <http://groups.google.com/a/sagebase.org/group/nrgrlink/subscribe>
+
+--e89a8fb1f22cb68a5e0510e71867
+Content-Type: multipart/alternative; boundary=e89a8fb1f22cb68a590510e71865
+
+--e89a8fb1f22cb68a590510e71865
+Content-Type: text/plain; charset=UTF-8
+
+the token is included as a file attachment
+
+-- 
+You received this message because you are subscribed to the Google Groups "nrgrLink" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to nrgrlink+unsubscribe@sagebase.org.
+To post to this group, send email to nrgrlink@sagebase.org.
+To view this discussion on the web visit https://groups.google.com/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWs7QOQUiL2_cvkFkeM64Vy7M%3Dmoz9M%2BxwMuw2Q%2BkcfkLQ%40mail.gmail.com.
+
+--e89a8fb1f22cb68a590510e71865
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">the token is included as a file attachment<br><br></div>
+
+<p></p>
+
+-- <br />
+You received this message because you are subscribed to the Google Groups &=
+quot;nrgrLink&quot; group.<br />
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to <a href=3D"mailto:nrgrlink+unsubscribe@sagebase.org">nrgrlink+unsub=
+scribe@sagebase.org</a>.<br />
+To post to this group, send email to <a href=3D"mailto:nrgrlink@sagebase.or=
+g">nrgrlink@sagebase.org</a>.<br />
+To view this discussion on the web visit <a href=3D"https://groups.google.c=
+om/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWs7QOQUiL2_cvkFkeM64Vy7M%3Dmoz9M%2=
+BxwMuw2Q%2BkcfkLQ%40mail.gmail.com?utm_medium=3Demail&utm_source=3Dfooter">=
+https://groups.google.com/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWs7QOQUiL2_=
+cvkFkeM64Vy7M%3Dmoz9M%2BxwMuw2Q%2BkcfkLQ%40mail.gmail.com</a>.<br />
+
+--e89a8fb1f22cb68a590510e71865--
+--e89a8fb1f22cb68a5e0510e71867
+Content-Type: text/plain; charset=US-ASCII; name="2015Mar09MyToken.txt"
+Content-Disposition: attachment; filename="2015Mar09MyToken.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i72rje1w0
+
+CmdvYmJseWR5Z29vawoKPT09PT09PT09PT09PT09IFNZTkFQU0UgTlJHUiBMSU5LIFRPS0VOIEJP
+VU5EQVJZID09PT09PT09PT09PT09PQp8MjczOTYwfDMyNDg3NjB8MTQyNTk1OTQ0ODkwNXxGd0VG
+VXUwSDZGdFhxSHduVW9WbkNqOXpIKzQ9fAo9PT09PT09PT09PT09PT0gU1lOQVBTRSBOUkdSIExJ
+TksgVE9LRU4gQk9VTkRBUlkgPT09PT09PT09PT09PT09CgoKZ29iYmx5ZHlnb29rCg==
+--e89a8fb1f22cb68a5e0510e71867--

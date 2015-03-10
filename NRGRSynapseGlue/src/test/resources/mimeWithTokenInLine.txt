@@ -1,0 +1,174 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: synapse@sagebase.org
+Received: by 10.36.74.143 with SMTP id k137csp1722071itb;
+        Mon, 9 Mar 2015 21:11:22 -0700 (PDT)
+X-Received: by 10.66.102.34 with SMTP id fl2mr60989734pab.40.1425960682737;
+        Mon, 09 Mar 2015 21:11:22 -0700 (PDT)
+Return-Path: <nrgrlink+bncBDT7ZUEJVEHBB2O57GTQKGQECMTLJEQ@sagebase.org>
+Received: from psmtp.com (na3sys009amx205.postini.com. [74.125.149.45])
+        by mx.google.com with SMTP id r1si85176pdh.239.2015.03.09.21.11.21
+        for <synapse@sagebase.org>;
+        Mon, 09 Mar 2015 21:11:22 -0700 (PDT)
+Received-SPF: pass (google.com: domain of nrgrlink+bncBDT7ZUEJVEHBB2O57GTQKGQECMTLJEQ@sagebase.org designates 209.85.220.72 as permitted sender) client-ip=209.85.220.72;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of nrgrlink+bncBDT7ZUEJVEHBB2O57GTQKGQECMTLJEQ@sagebase.org designates 209.85.220.72 as permitted sender) smtp.mail=nrgrlink+bncBDT7ZUEJVEHBB2O57GTQKGQECMTLJEQ@sagebase.org
+Received: from mail-pa0-f72.google.com ([209.85.220.72]) (using TLSv1) by na3sys009amx205.postini.com ([74.125.148.10]) with SMTP;
+	Tue, 10 Mar 2015 04:11:22 GMT
+Received: by padet14 with SMTP id et14sf305345328pad.2
+        for <synapse@sagebase.org>; Mon, 09 Mar 2015 21:11:21 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20130820;
+        h=x-gm-message-state:mime-version:in-reply-to:references:date
+         :message-id:subject:from:to:content-type:x-original-sender
+         :x-original-authentication-results:precedence:mailing-list:list-id
+         :list-post:list-help:list-archive:list-unsubscribe;
+        bh=nIi/woAKvTBGr0cCcKrJ1NdVDFq1P4OuvrZWc9CZgIA=;
+        b=SQ7an1k6AD6lzYoTmRn/dBSkUcfXi846VcA8OStoO8WFcuHBb4v9rEvQdMLHferv/W
+         JGrBb94Leddwl1cdrd5/MrUFFMbBETxDIWTkPGIRVCE3Flw7DYOOZLHSyt3lnZXO+7NK
+         RunmdXWvjESeJA/oI2fqAW2ZXQYnfgcI+BsPvSTfL5eSwrLbPFL4N6DecNuxl9+o/VVM
+         4Z+aPcEFBUg0Qjv07+lpgMZniQLPJjH79pLb9tD6jlJOWJDxKgkK2kKEMWlOUAHxE8Nm
+         dB51VSKPfvyixOU3yCdgbcB5zrEiI3FOj/6VUJ3ZFQh21LEMO0W7+HOgIQpd2USC+N4M
+         oAug==
+X-Gm-Message-State: ALoCoQkf82xtHuCdFobAbShh0vCCiBO/vYgVxh98rNA24Ilnz5YYJBCWubCst3YMT+6EuTH9fjfz
+X-Received: by 10.66.236.74 with SMTP id us10mr7934208pac.28.1425960681319;
+        Mon, 09 Mar 2015 21:11:21 -0700 (PDT)
+X-BeenThere: nrgrlink@sagebase.org
+Received: by 10.182.44.129 with SMTP id e1ls232498obm.83.gmail; Mon, 09 Mar
+ 2015 21:11:21 -0700 (PDT)
+X-Received: by 10.182.130.166 with SMTP id of6mr24533265obb.53.1425960681060;
+        Mon, 09 Mar 2015 21:11:21 -0700 (PDT)
+Received: from mail-ob0-f176.google.com (mail-ob0-f176.google.com. [209.85.214.176])
+        by mx.google.com with ESMTPS id g185si1753741oia.137.2015.03.09.21.11.20
+        for <nrgrlink@sagebase.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 09 Mar 2015 21:11:20 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bruce.hoff@sagebase.org designates 209.85.214.176 as permitted sender) client-ip=209.85.214.176;
+Received: by obbnt9 with SMTP id nt9so13606295obb.12
+        for <nrgrlink@sagebase.org>; Mon, 09 Mar 2015 21:11:20 -0700 (PDT)
+MIME-Version: 1.0
+X-Received: by 10.60.116.4 with SMTP id js4mr24352150oeb.78.1425960680725;
+ Mon, 09 Mar 2015 21:11:20 -0700 (PDT)
+Received: by 10.76.83.42 with HTTP; Mon, 9 Mar 2015 21:11:20 -0700 (PDT)
+In-Reply-To: <0000014c01ce80be-6f51297d-6695-4833-9afc-dab06b36cff4-000000@email.amazonses.com>
+References: <0000014c01ce80be-6f51297d-6695-4833-9afc-dab06b36cff4-000000@email.amazonses.com>
+Date: Mon, 9 Mar 2015 21:11:20 -0700
+Message-ID: <CAAeMkWtbguDnZAiueSiXSDbaMVsh+w+jzEkpJC=ctVioVduTWw@mail.gmail.com>
+Subject: Fwd: CommonMind Data Access Request
+From: Bruce Hoff <bruce.hoff@sagebase.org>
+To: nrgrLink <nrgrlink@sagebase.org>
+Content-Type: multipart/alternative; boundary=089e01161656d6b31e0510e75767
+X-Original-Sender: bruce.hoff@sagebase.org
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com:
+ domain of bruce.hoff@sagebase.org designates 209.85.214.176 as permitted
+ sender) smtp.mail=bruce.hoff@sagebase.org
+Precedence: list
+Mailing-list: list nrgrlink@sagebase.org; contact nrgrlink+owners@sagebase.org
+List-ID: <nrgrlink.sagebase.org>
+X-Google-Group-Id: 957723499801
+List-Post: <http://groups.google.com/a/sagebase.org/group/nrgrlink/post>, <mailto:nrgrlink@sagebase.org>
+List-Help: <http://support.google.com/a/sagebase.org/bin/topic.py?topic=25838>,
+ <mailto:nrgrlink+help@sagebase.org>
+List-Archive: <http://groups.google.com/a/sagebase.org/group/nrgrlink/>
+List-Unsubscribe: <mailto:googlegroups-manage+957723499801+unsubscribe@googlegroups.com>,
+ <http://groups.google.com/a/sagebase.org/group/nrgrlink/subscribe>
+X-pstn-mail-from: <nrgrlink+bncBDT7ZUEJVEHBB2O57GTQKGQECMTLJEQ@sagebase.org>
+X-pstn-dkim: 0 skipped:not-enabled
+X-pstn-nxpr: disp=neutral, envrcpt=synapse@sagebase.org
+X-pstn-nxp: bodyHash=db3633b4db7de5c8bda2cbd77e138204a7716511, headerHash=8a975ca72631550969e7d6416a27e426ca5128be, keyName=4, rcptHash=dd98948495c1ac6f3776d32a9121d36e76318975, sourceip=209.85.220.72, version=1
+
+--089e01161656d6b31e0510e75767
+Content-Type: text/plain; charset=UTF-8
+
+---------- Forwarded message ----------
+From: nrgrLink <notifications@synapse.org>
+Date: Mon, Mar 9, 2015 at 8:50 PM
+Subject: CommonMind Data Access Request
+To: bruce.hoff@sagebase.org
+
+
+Dear Bruce Hoff:
+
+As part of your application to the NIMH Repository and Genomics Resources
+(RGR) for access to the CommonMind data, you must include the following
+Synapse data access token with the application documents:
+https://www.nimhgenetics.org/available_data/brain/.
+
+
+=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============
+|273960|3248760|1425959448905|FwEFUu0H6FtXqHwnUoVnCj9zH+4=|
+=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============
+
+Please copy the three-line token (above) along with the tokens generated by
+all individuals from your group working on the study into a document
+labeled "CMC_SynapseToken_PIname_Date" and submit the document as part of
+the RGR application. If you are not the PI on the RGR application, please
+provide your token to the study PI so they may submit it.
+
+Note:  This token is valid for 122 days.  If the application is not
+approved within that time, a new token must be submitted.
+
+Sincerely,
+
+Synapse Access and Compliance Team
+
+-- 
+You received this message because you are subscribed to the Google Groups "nrgrLink" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to nrgrlink+unsubscribe@sagebase.org.
+To post to this group, send email to nrgrlink@sagebase.org.
+To view this discussion on the web visit https://groups.google.com/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWtbguDnZAiueSiXSDbaMVsh%2Bw%2BjzEkpJC%3DctVioVduTWw%40mail.gmail.com.
+
+--089e01161656d6b31e0510e75767
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br><div class=3D"gmail_quote">---------- Forwarded messag=
+e ----------<br>From: <b class=3D"gmail_sendername">nrgrLink</b> <span dir=
+=3D"ltr">&lt;<a href=3D"mailto:notifications@synapse.org">notifications@syn=
+apse.org</a>&gt;</span><br>Date: Mon, Mar 9, 2015 at 8:50 PM<br>Subject: Co=
+mmonMind Data Access Request<br>To: <a href=3D"mailto:bruce.hoff@sagebase.o=
+rg">bruce.hoff@sagebase.org</a><br><br><br>Dear Bruce Hoff:<br>
+<br>
+As part of your application to the NIMH Repository and Genomics Resources (=
+RGR) for access to the CommonMind data, you must include the following Syna=
+pse data access token with the application documents: <a href=3D"https://ww=
+w.nimhgenetics.org/available_data/brain/" target=3D"_blank">https://www.nim=
+hgenetics.org/available_data/brain/</a>.<br>
+<br>
+<br>
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
+ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<br>
+|273960|3248760|1425959448905|FwEFUu0H6FtXqHwnUoVnCj9zH+4=3D|<br>
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
+ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<br>
+<br>
+Please copy the three-line token (above) along with the tokens generated by=
+ all individuals from your group working on the study into a document label=
+ed &quot;CMC_SynapseToken_PIname_Date&quot; and submit the document as part=
+ of the RGR application. If you are not the PI on the RGR application, plea=
+se provide your token to the study PI so they may submit it.<br>
+<br>
+Note:=C2=A0 This token is valid for 122 days.=C2=A0 If the application is n=
+ot approved within that time, a new token must be submitted.<br>
+<br>
+Sincerely,<br>
+<br>
+Synapse Access and Compliance Team<br>
+</div><br></div>
+
+<p></p>
+
+-- <br />
+You received this message because you are subscribed to the Google Groups &=
+quot;nrgrLink&quot; group.<br />
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to <a href=3D"mailto:nrgrlink+unsubscribe@sagebase.org">nrgrlink+unsub=
+scribe@sagebase.org</a>.<br />
+To post to this group, send email to <a href=3D"mailto:nrgrlink@sagebase.or=
+g">nrgrlink@sagebase.org</a>.<br />
+To view this discussion on the web visit <a href=3D"https://groups.google.c=
+om/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWtbguDnZAiueSiXSDbaMVsh%2Bw%2BjzEk=
+pJC%3DctVioVduTWw%40mail.gmail.com?utm_medium=3Demail&utm_source=3Dfooter">=
+https://groups.google.com/a/sagebase.org/d/msgid/nrgrlink/CAAeMkWtbguDnZAiu=
+eSiXSDbaMVsh%2Bw%2BjzEkpJC%3DctVioVduTWw%40mail.gmail.com</a>.<br />
+
+--089e01161656d6b31e0510e75767--
