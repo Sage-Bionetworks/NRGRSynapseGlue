@@ -50,15 +50,18 @@ class OAuth2SaslClient implements SaslClient {
     this.callbackHandler = callbackHandler;
   }
 
-  public String getMechanismName() {
+  @Override
+public String getMechanismName() {
     return "XOAUTH2";
   }
 
-  public boolean hasInitialResponse() {
+  @Override
+public boolean hasInitialResponse() {
     return true;
   }
 
-  public byte[] evaluateChallenge(byte[] challenge) throws SaslException {
+  @Override
+public byte[] evaluateChallenge(byte[] challenge) throws SaslException {
     if (isComplete) {
       // Empty final response from server, just ignore it.
       return new byte[] { };
@@ -81,27 +84,32 @@ class OAuth2SaslClient implements SaslClient {
     return response;
   }
 
-  public boolean isComplete() {
+  @Override
+public boolean isComplete() {
     return isComplete;
   }
 
-  public byte[] unwrap(byte[] incoming, int offset, int len)
+  @Override
+public byte[] unwrap(byte[] incoming, int offset, int len)
       throws SaslException {
     throw new IllegalStateException();
   }
 
-  public byte[] wrap(byte[] outgoing, int offset, int len)
+  @Override
+public byte[] wrap(byte[] outgoing, int offset, int len)
       throws SaslException {
     throw new IllegalStateException();
   }
 
-  public Object getNegotiatedProperty(String propName) {
+  @Override
+public Object getNegotiatedProperty(String propName) {
     if (!isComplete()) {
       throw new IllegalStateException();
     }
     return null;
   }
 
-  public void dispose() throws SaslException {
+  @Override
+public void dispose() throws SaslException {
   }
 }

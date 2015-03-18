@@ -21,7 +21,6 @@ import static javax.mail.Folder.READ_ONLY;
 import static org.sagebionetworks.Util.getProperty;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.Security;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -41,7 +39,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.URLName;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpException;
 import org.apache.http.NameValuePair;
@@ -83,9 +80,6 @@ public class IMAPClient {
 	public void processNewMessages(MessageHandler handler) throws Exception {
 		String inFolder = getProperty("MAIL_IN_FOLDER");
 		String outFolder = getProperty("MAIL_OUT_FOLDER");
-		if (imapStore==null) {
-			imapStore = connectToImap("imap.gmail.com", 993, false);
-		}
 		Map<Integer, byte[]> newMessages = getMessages(inFolder);
 		int[] msgNumbers = new int[newMessages.size()];
 		int i = 0;
@@ -165,6 +159,9 @@ public class IMAPClient {
 	 * Connects to Gmail account and downloads pdf files
 	 */
 	public Map<Integer, byte[]> getMessages(String emailFolder) throws Exception {
+		if (imapStore==null) {
+			imapStore = connectToImap("imap.gmail.com", 993, false);
+		}
 		Folder folder = imapStore.getFolder(emailFolder);
 		folder.open(READ_ONLY);  
 		Map<Integer, byte[]> ans = new TreeMap<Integer, byte[]>();
@@ -174,16 +171,14 @@ public class IMAPClient {
 				Integer msgNum = i+1;
 				Message message = folder.getMessage(msgNum);
 				// write the content to a byte array
-				{
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					try {
-						message.writeTo(baos);
-						baos.flush();
-						byte[] bytes = baos.toByteArray();
-						ans.put(msgNum, bytes);
-					} finally {
-						baos.close();
-					}
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				try {
+					message.writeTo(baos);
+					baos.flush();
+					byte[] bytes = baos.toByteArray();
+					ans.put(msgNum, bytes);
+				} finally {
+					baos.close();
 				}
 			} // end for i (iterating through messages)
 		} finally {

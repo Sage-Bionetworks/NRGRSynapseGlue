@@ -38,7 +38,8 @@ public class OAuth2SaslClientFactory implements SaslClientFactory {
   public static final String OAUTH_TOKEN_PROP =
       "mail.imaps.sasl.mechanisms.oauth2.oauthToken";
 
-  public SaslClient createSaslClient(String[] mechanisms,
+  @Override
+public SaslClient createSaslClient(String[] mechanisms,
                                      String authorizationId,
                                      String protocol,
                                      String serverName,
@@ -59,7 +60,8 @@ public class OAuth2SaslClientFactory implements SaslClientFactory {
                                 callbackHandler);
   }
 
-  public String[] getMechanismNames(Map<String, ?> props) {
+  @Override
+public String[] getMechanismNames(Map<String, ?> props) {
     return new String[] {"XOAUTH2"};
   }
 }

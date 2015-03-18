@@ -1,0 +1,505 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: bruce.hoff@sagebase.org
+Received: by 10.76.167.71 with SMTP id zm7csp2318628oab;
+        Tue, 10 Mar 2015 13:26:13 -0700 (PDT)
+X-Received: by 10.52.99.226 with SMTP id et2mr6259044vdb.14.1426019173256;
+        Tue, 10 Mar 2015 13:26:13 -0700 (PDT)
+Return-Path: <nikki.north@nih.gov>
+Received: from nihxway4out.hub.nih.gov (nihxway4out.hub.nih.gov. [128.231.90.112])
+        by mx.google.com with ESMTP id h5si631908vcz.35.2015.03.10.13.26.12
+        for <bruce.hoff@sagebase.org>;
+        Tue, 10 Mar 2015 13:26:13 -0700 (PDT)
+Received-SPF: pass (google.com: domain of nikki.north@nih.gov designates 128.231.90.112 as permitted sender) client-ip=128.231.90.112;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of nikki.north@nih.gov designates 128.231.90.112 as permitted sender) smtp.mail=nikki.north@nih.gov
+X-IronPortListener: Outbound_SMTP
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-Anti-Spam-Result: A2HhEwDxUv9U/4dHKJxZA4JDQ1JaBIMGsmCHRoNIgi0BC4VuAoE4TQEBAQEBAQJ6gj47CAQdAg1eAQEBBBIRCloCAgEIDQQEAQELHQMCAgIZBBMUCQgCBBMIBhSIDQ2fZoommzQBAQEBAQEBAQEBAQEBAQEBAQEBAQETBASLE4QMEAIBHgURCwwKARGCHDsSHYEWBYR3iR+CAwSBYYEuVIV0gRqDKIJJiSmDQyOCAhyBUG8BgQMkHH8BAQE
+X-IPAS-Result: A2HhEwDxUv9U/4dHKJxZA4JDQ1JaBIMGsmCHRoNIgi0BC4VuAoE4TQEBAQEBAQJ6gj47CAQdAg1eAQEBBBIRCloCAgEIDQQEAQELHQMCAgIZBBMUCQgCBBMIBhSIDQ2fZoommzQBAQEBAQEBAQEBAQEBAQEBAQEBAQETBASLE4QMEAIBHgURCwwKARGCHDsSHYEWBYR3iR+CAwSBYYEuVIV0gRqDKIJJiSmDQyOCAhyBUG8BgQMkHH8BAQE
+Received: from unknown (HELO msgb05.nih.gov) ([156.40.71.135])
+  by nihxway4out.hub.nih.gov with ESMTP/TLS/AES128-SHA; 10 Mar 2015 16:25:52 -0400
+Received: from MSGB09.nih.gov ([169.254.9.38]) by msgb05.nih.gov
+ ([169.254.5.43]) with mapi id 14.03.0210.002; Tue, 10 Mar 2015 16:25:52 -0400
+From: "North, Nicole (NIH/NIMH) [E]" <nikki.north@nih.gov>
+To: 'Bruce Hoff' <bruce.hoff@sagebase.org>
+Subject: RE: NRGR-Synapse integration
+Thread-Topic: NRGR-Synapse integration
+Thread-Index: AQHQW2eYmzhSkA1XF0OLAyAnvxIwSJ0WHZoQgABPEQD//70WMA==
+Date: Tue, 10 Mar 2015 20:25:51 +0000
+Message-ID: <943B00C302957647B9272C6BC01687D134922038@msgb09.nih.gov>
+References: <CAAeMkWsiLxuFFLxQvFcEk3_DaokDoVA45r0zSc2BYzzhQd5zKA@mail.gmail.com>
+ <943B00C302957647B9272C6BC01687D134921F2E@msgb09.nih.gov>
+ <A824736C-95DF-4368-8DA0-015F38B8E616@sagebase.org>
+In-Reply-To: <A824736C-95DF-4368-8DA0-015F38B8E616@sagebase.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: yes
+X-MS-TNEF-Correlator:
+x-originating-ip: [156.40.71.190]
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+	micalg=SHA1; boundary="----=_NextPart_000_0009_01D05B4E.DB1FDEA0"
+MIME-Version: 1.0
+
+------=_NextPart_000_0009_01D05B4E.DB1FDEA0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_000A_01D05B4E.DB1FDEA0"
+
+
+------=_NextPart_001_000A_01D05B4E.DB1FDEA0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+I am certain that I signed it digitally. I just digitally signed this email 
+back to you as well.
+
+
+
+Nikki M. North, MPH
+
+Scientific Program Analyst
+
+Division of Neuroscience and Basic Behavioral Science (DNBBS)
+
+NIH Roadmap Molecular Libraries & Imaging
+
+NIMH/NIH
+
+Office Phone: 301-443-3564
+
+iPhone: 301-605-0592
+
+northnm@mail.nih.gov
+
+
+
+From: Bruce Hoff [mailto:bruce.hoff@sagebase.org]
+Sent: Tuesday, March 10, 2015 4:25 PM
+To: North, Nicole (NIH/NIMH) [E]
+Subject: Re: NRGR-Synapse integration
+
+
+
+Hi Nikki:
+
+We got the email, but did not seem to get the  'digital signature'.  If you 
+are certain you included it then I will investigate if it somehow was dropped 
+on our end.
+
+Bruce
+
+
+On Mar 10, 2015, at 12:41 PM, North, Nicole (NIH/NIMH) [E] 
+<nikki.north@nih.gov> wrote:
+
+I just sent the email.
+
+
+
+Nikki M. North, MPH
+
+Scientific Program Analyst
+
+Division of Neuroscience and Basic Behavioral Science (DNBBS)
+
+NIH Roadmap Molecular Libraries & Imaging
+
+NIMH/NIH
+
+Office Phone: 301-443-3564
+
+iPhone: 301-605-0592
+
+northnm@mail.nih.gov
+
+
+
+From: Bruce Hoff [mailto:bruce.hoff@sagebase.org]
+Sent: Tuesday, March 10, 2015 3:23 PM
+To: North, Nicole (NIH/NIMH) [E]
+Subject: NRGR-Synapse integration
+
+
+
+Hi Nikki:
+
+Hope this note finds you well.  I'm happy to report that we now have what we 
+feel is a secure and automated way to unlock access to the Common Mind 
+Consortium data in Synapse, based on authorization in NRGR.  I would like to 
+ask your help with one last test:  Our system validates the "S/MIME" 
+signature/certificate that you can include in your messages from Microsoft 
+Outlook.  (It will reject any emails which are not from the NIH or do not have 
+such a signature.)  To test this, would you kindly send an email to the 
+following address: nrgrLink@sagebase.org?  In the email, please (1) attach the 
+two small files which I attach to this email and (2) "sign" the email before 
+sending.  If the system works as designed, data access (to a dummy data set) 
+will be unlocked for two test users.
+
+FYI: A high level summary of our design is here:
+https://sagebionetworks.jira.com/wiki/pages/viewpage.action?pageId=71598120
+
+
+
+Thanks for your help with this test.  If you have any questions, please let me 
+know.
+
+Bruce Hoff
+
+Principal Software Engineer
+
+Sage Bionetworks
+
+
+------=_NextPart_001_000A_01D05B4E.DB1FDEA0
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
+http-equiv=3DContent-Type content=3D"text/html; charset=3Dutf-8"><meta =
+name=3DGenerator content=3D"Microsoft Word 14 (filtered =
+medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman","serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-priority:99;
+	mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+span.EmailStyle17
+	{mso-style-type:personal;
+	font-family:"Calibri","sans-serif";
+	color:#1F497D;}
+span.EmailStyle18
+	{mso-style-type:personal-reply;
+	font-family:"Calibri","sans-serif";
+	color:#1F497D;}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-size:10.0pt;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-US link=3Dblue =
+vlink=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'>I am certain that I signed it digitally. I just digitally signed this =
+email back to you as well. <o:p></o:p></span></p><p =
+class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p>&nbsp;</o:p></span></p><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Nikki&nbsp;M. North, MPH</span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Scientific Program Analyst </span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Division of Neuroscience and Basic Behavioral Science =
+(DNBBS)</span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+NIH Roadmap Molecular Libraries &amp; Imaging</span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+NIMH/NIH</span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Office Phone: 301-443-3564<o:p></o:p></span></p><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+iPhone: 301-605-0592<o:p></o:p></span></p></div><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+<a href=3D"mailto:northnm@mail.nih.gov">northnm@mail.nih.gov</a> =
+</span><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p></o:p></span></p></div><p class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'><o:p>&nbsp;</o:p></span></p><div><div =
+style=3D'border:none;border-top:solid #B5C4DF 1.0pt;padding:3.0pt 0in =
+0in 0in'><p class=3DMsoNormal><b><span =
+style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'>From:</span>=
+</b><span style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'> =
+Bruce Hoff [mailto:bruce.hoff@sagebase.org] <br><b>Sent:</b> Tuesday, =
+March 10, 2015 4:25 PM<br><b>To:</b> North, Nicole (NIH/NIMH) =
+[E]<br><b>Subject:</b> Re: NRGR-Synapse =
+integration<o:p></o:p></span></p></div></div><p =
+class=3DMsoNormal><o:p>&nbsp;</o:p></p><div><p class=3DMsoNormal>Hi =
+Nikki:<o:p></o:p></p></div><div><p class=3DMsoNormal>We got the email, =
+but did not seem to get the &nbsp;'digital signature'. &nbsp;If you are =
+certain you included it then I will investigate if it somehow was =
+dropped on our end.<o:p></o:p></p></div><div><p class=3DMsoNormal =
+style=3D'margin-bottom:12.0pt'>Bruce<o:p></o:p></p></div><div><p =
+class=3DMsoNormal style=3D'margin-bottom:12.0pt'><br>On Mar 10, 2015, at =
+12:41 PM, North, Nicole (NIH/NIMH) [E] &lt;<a =
+href=3D"mailto:nikki.north@nih.gov">nikki.north@nih.gov</a>&gt; =
+wrote:<o:p></o:p></p></div><blockquote =
+style=3D'margin-top:5.0pt;margin-bottom:5.0pt'><div><p =
+class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'>I just sent the email. </span><o:p></o:p></p><p =
+class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'>&nbsp;</span><o:p></o:p></p><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Nikki&nbsp;M. North, MPH</span><o:p></o:p></p><div><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Scientific Program Analyst </span><o:p></o:p></p></div><div><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Division of Neuroscience and Basic Behavioral Science =
+(DNBBS)</span><o:p></o:p></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+NIH Roadmap Molecular Libraries &amp; =
+Imaging</span><o:p></o:p></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+NIMH/NIH</span><o:p></o:p></p></div><div><p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+Office Phone: 301-443-3564</span><o:p></o:p></p><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+iPhone: 301-605-0592</span><o:p></o:p></p></div><p =
+class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Calibri","sans-serif";color:navy'>=
+<a href=3D"mailto:northnm@mail.nih.gov">northnm@mail.nih.gov</a> =
+</span><o:p></o:p></p><p class=3DMsoNormal><span =
+style=3D'font-size:11.0pt;font-family:"Calibri","sans-serif";color:#1F497=
+D'>&nbsp;</span><o:p></o:p></p><p class=3DMsoNormal><b><span =
+style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'>From:</span>=
+</b><span style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'> =
+Bruce Hoff [<a =
+href=3D"mailto:bruce.hoff@sagebase.org">mailto:bruce.hoff@sagebase.org</a=
+>] <br><b>Sent:</b> Tuesday, March 10, 2015 3:23 PM<br><b>To:</b> North, =
+Nicole (NIH/NIMH) [E]<br><b>Subject:</b> NRGR-Synapse =
+integration</span><o:p></o:p></p><p =
+class=3DMsoNormal>&nbsp;<o:p></o:p></p><div><div><div><div><div><div><div=
+><div><p class=3DMsoNormal>Hi Nikki:<o:p></o:p></p></div><p =
+class=3DMsoNormal style=3D'margin-bottom:12.0pt'>Hope this note finds =
+you well.&nbsp; I'm happy to report that we now have what we feel is a =
+secure and automated way to unlock access to the Common Mind Consortium =
+data in Synapse, based on authorization in NRGR.&nbsp; I would like to =
+ask your help with one last test:&nbsp; Our system validates the =
+&quot;S/MIME&quot; signature/certificate that you can include in your =
+messages from Microsoft Outlook.&nbsp; (It will reject any emails which =
+are not from the NIH or do not have such a signature.)&nbsp; To test =
+this, would you kindly send an email to the following address: <a =
+href=3D"mailto:nrgrLink@sagebase.org">nrgrLink@sagebase.org</a>?&nbsp; =
+In the email, please (1) attach the two small files which I attach to =
+this email and (2) &quot;sign&quot; the email before sending.&nbsp; If =
+the system works as designed, data access (to a dummy data set) will be =
+unlocked for two test users.<o:p></o:p></p></div><p =
+class=3DMsoNormal>FYI: A high level summary of our design is here:<br><a =
+href=3D"https://sagebionetworks.jira.com/wiki/pages/viewpage.action?pageI=
+d=3D71598120">https://sagebionetworks.jira.com/wiki/pages/viewpage.action=
+?pageId=3D71598120</a><o:p></o:p></p></div><p =
+class=3DMsoNormal>&nbsp;<o:p></o:p></p></div><p class=3DMsoNormal =
+style=3D'margin-bottom:12.0pt'>Thanks for your help with this =
+test.&nbsp; If you have any questions, please let me =
+know.<o:p></o:p></p></div><p class=3DMsoNormal>Bruce =
+Hoff<o:p></o:p></p></div><p class=3DMsoNormal>Principal Software =
+Engineer<o:p></o:p></p></div><p class=3DMsoNormal =
+style=3D'margin-bottom:12.0pt'>Sage =
+Bionetworks<o:p></o:p></p></div></div></blockquote></div></body></html>
+------=_NextPart_001_000A_01D05B4E.DB1FDEA0--
+
+------=_NextPart_000_0009_01D05B4E.DB1FDEA0
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIdUjCCBGAw
+ggNIoAMCAQICAgEwMA0GCSqGSIb3DQEBCwUAMFkxCzAJBgNVBAYTAlVTMRgwFgYDVQQKEw9VLlMu
+IEdvdmVybm1lbnQxDTALBgNVBAsTBEZQS0kxITAfBgNVBAMTGEZlZGVyYWwgQ29tbW9uIFBvbGlj
+eSBDQTAeFw0xMDEyMDExNjQ1MjdaFw0zMDEyMDExNjQ1MjdaMFkxCzAJBgNVBAYTAlVTMRgwFgYD
+VQQKEw9VLlMuIEdvdmVybm1lbnQxDTALBgNVBAsTBEZQS0kxITAfBgNVBAMTGEZlZGVyYWwgQ29t
+bW9uIFBvbGljeSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANh1+zUWNFpBv1qv
+XDAEFByteES16ibqdWHHzTZ5+HzYvSlRZlkh43mr1Hi+sC2wodWyNRYj0Mwevg7oq9zDydYS16dy
+aBgxuBcisj5+ughtxv3RWCxpoAPwKqP2PyElPd+3MsWOJ7MjpeBSs12W6bC4xcWfu8WgboJAu8Un
+BTZJ1iYnaQw0j88neioKo0FfjR0DhoMV4FXBxZgsnuwactxIwT75hNKEgsEbw3Q2t7nHNjJ6+DK2
+0DauIhgxjFBzIZ7+gzswiCTj6cF+3u2Yxx+SEIqfW2IvnaS81YVvOv3JU6cgS6rbIKshTh0NTuaY
+heWrEUddnT/EI8DjFAZu/p0CAwEAAaOCATAwggEsMA8GA1UdEwEB/wQFMAMBAf8wgekGCCsGAQUF
+BwELBIHcMIHZMD8GCCsGAQUFBzAFhjNodHRwOi8vaHR0cC5mcGtpLmdvdi9mY3BjYS9jYUNlcnRz
+SXNzdWVkQnlmY3BjYS5wN2MwgZUGCCsGAQUFBzAFhoGIbGRhcDovL2xkYXAuZnBraS5nb3YvY249
+RmVkZXJhbCUyMENvbW1vbiUyMFBvbGljeSUyMENBLG91PUZQS0ksbz1VLlMuJTIwR292ZXJubWVu
+dCxjPVVTP2NBQ2VydGlmaWNhdGU7YmluYXJ5LGNyb3NzQ2VydGlmaWNhdGVQYWlyO2JpbmFyeTAO
+BgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYEFK0MenVc5fOYxHmYDqwo/Zf05wL8MA0GCSqGSIb3DQEB
+CwUAA4IBAQCPc9rhf4Cxh/bsLM/RhGMe9vGIt5ryEbXvVK2Kbhg3KO9cG+TvULdsJhgjIk0dJkcg
+6Qmc4nBicasRz5GJ6LP1KqBHwBTLTkLB3QwOG/CHW+zld9eq4FTXRfSFPuy0Hd58in9bTZyWitCi
+Mp/abDEM+KTvfnPokdwIenBaoK9igVn4AHSiyN1UykFWR73pwE/tIN3jpQnfrijC/NHIF9gSx2/e
+Lum9mpHyPFqULpEigImhjFjMg3omGXUCpQ59CiZzUeqGyweoyP1jWjWb0q+/TzFIwYRw2zV7mhkP
+5Y/0agxvM9nrHHCiDeO5UANhAv9K7JKk3C3uKjSTB7cs5xiPMIIFozCCBIugAwIBAgIERIAWaDAN
+BgkqhkiG9w0BAQsFADBuMQswCQYDVQQGEwJVUzEQMA4GA1UEChMHRW50cnVzdDEiMCAGA1UECxMZ
+Q2VydGlmaWNhdGlvbiBBdXRob3JpdGllczEpMCcGA1UECxMgRW50cnVzdCBNYW5hZ2VkIFNlcnZp
+Y2VzIFJvb3QgQ0EwHhcNMTMwMzA3MTc0MTE0WhcNMTkwNTA5MTQwMjMxWjB/MQswCQYDVQQGEwJV
+UzEYMBYGA1UEChMPVS5TLiBHb3Zlcm5tZW50MQwwCgYDVQQLEwNISFMxIjAgBgNVBAsTGUNlcnRp
+ZmljYXRpb24gQXV0aG9yaXRpZXMxJDAiBgNVBAMTG0hIUy1GUEtJLUludGVybWVkaWF0ZS1DQS1F
+MTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJj3qaaY9xHopwDCTktjCIMBSy/cZgXJ
+bBZKdmH/A9w32p0s54lb2tqORB31/u3l1P4sALNG0oNF0cb0eXyi2gGswfrk8g0n+BwbOz/aoWr6
+LDNE50QfyLfGAPQ5tm9a3nx93lBbWc9UpXODriCz5tWz4B57aBGuYvm4P11eFwqU9LPw7nMa6kcW
+qhaoXnfCovWMvQ/kQdMrsR8ykgdR2hZSnojN0IvEkYBQ+wgwJjREoBfA26FMYg/mr6zZ/7RSkCwo
+ZnuzjqSDfrXz+FlPGQHJpND67rxawEs3I6ijjhD9T7Plc8oYt9FjSpIy9wwBSR9f5x+nA9pCxThS
+/FOqxBECAwEAAaOCAjYwggIyMA4GA1UdDwEB/wQEAwIBBjBPBgNVHSAESDBGMAwGCmCGSAFlAwIB
+AwYwDAYKYIZIAWUDAgEDBzAMBgpghkgBZQMCAQMIMAwGCmCGSAFlAwIBAw0wDAYKYIZIAWUDAgED
+ETASBgNVHRMBAf8ECDAGAQH/AgEAMIGkBggrBgEFBQcBAQSBlzCBlDBNBggrBgEFBQcwAoZBaHR0
+cDovL3Jvb3R3ZWIubWFuYWdlZC5lbnRydXN0LmNvbS9BSUEvQ2VydHNJc3N1ZWRUb0VNU1Jvb3RD
+QS5wN2MwQwYIKwYBBQUHMAGGN2h0dHA6Ly9vY3NwLm1hbmFnZWQuZW50cnVzdC5jb20vT0NTUC9F
+TVNSb290Q0FSZXNwb25kZXIwgdMGA1UdHwSByzCByDA8oDqgOIY2aHR0cDovL3Jvb3R3ZWIubWFu
+YWdlZC5lbnRydXN0LmNvbS9DUkxzL0VNU1Jvb3RDQTEuY3JsMIGHoIGEoIGBpH8wfTELMAkGA1UE
+BhMCVVMxEDAOBgNVBAoTB0VudHJ1c3QxIjAgBgNVBAsTGUNlcnRpZmljYXRpb24gQXV0aG9yaXRp
+ZXMxKTAnBgNVBAsTIEVudHJ1c3QgTWFuYWdlZCBTZXJ2aWNlcyBSb290IENBMQ0wCwYDVQQDEwRD
+UkwxMB8GA1UdIwQYMBaAFJxiZiadcbandVNk4ayxxyU8RF0NMB0GA1UdDgQWBBRN1aomng5IvuVG
+LPjhAHQI+vZDRDANBgkqhkiG9w0BAQsFAAOCAQEAsqE7CKsvBIK5v/H3qzlogZ8jdvYx87En7j7M
+YQ3yfylgD+WNtA5DKN+ZuKkWPAPwJd42i9n45xVRRUFIaglIc9itvrR8iPA1sQyYKibBI4bHDe3E
+pZDv6tObi7IJox/wsUkwygJreSlkW0m5354fiEHLn6agTVoTSP9ClEChGq6LOwOJ0JzgwZUPYYfp
+/bAb7+zyiZH5qqh2c0m+9H9CijE1vJoZQ385BYPIt7bkDDgSnleed/O7V3ZC5q7opfj/Dzetr6fZ
+0WVEQDuFXC5zepimnEF9a8Z2wZYURcIzkQFxnUN8+ggVH0735kUuWYdlWfr8/v723e1icNSirFwx
+zjCCBjYwggUeoAMCAQICBFEs/rIwDQYJKoZIhvcNAQELBQAwfzELMAkGA1UEBhMCVVMxGDAWBgNV
+BAoTD1UuUy4gR292ZXJubWVudDEMMAoGA1UECxMDSEhTMSIwIAYDVQQLExlDZXJ0aWZpY2F0aW9u
+IEF1dGhvcml0aWVzMSQwIgYDVQQDExtISFMtRlBLSS1JbnRlcm1lZGlhdGUtQ0EtRTEwHhcNMTQw
+MzA2MTQ0MjMyWhcNMTYwODAzMTUxMjMxWjCBiDELMAkGA1UEBhMCVVMxGDAWBgNVBAoTD1UuUy4g
+R292ZXJubWVudDEMMAoGA1UECxMDSEhTMQwwCgYDVQQLEwNOSUgxDzANBgNVBAsTBlBlb3BsZTEy
+MBYGA1UEAxMPTmljb2xlIE0uIE1hIC1FMBgGCgmSJomT8ixkAQETCjAwMTI5NTIyMTYwggEiMA0G
+CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCrEIcZhcxnD9JJGpGx5Ye0w3or1mJuAPHIXW541Gvy
+TpkrR04h0YMmPNci46V6YT9THT7LnlO/HE+mugTab0aeBjikisdY6b4IGu0nBP1oOO6svudZUtdQ
+qw4gjgMhB4FYajep5ZpoBdV1wqIxBjDspkX9iACd+n9gFwEnyp9DrabigLM+U9OMd/HE87OgXSYD
+K5ZpF/isiHHXLHpn4iZNIWLfh7s5sKu0OSpY7uv04VNbjgcBbzp7K+TxNQ02DUtEjojuJTUxuJsP
+Yn6bdJiLL/k4boyDweeC3IK5FFxsoiH/zOxqwMveLBRkVwJ6TkyPcPySImn7gfY6VkY24uLrAgMB
+AAGjggKuMIICqjAOBgNVHQ8BAf8EBAMCBSAwFwYDVR0gBBAwDjAMBgpghkgBZQMCAQMGMIHLBggr
+BgEFBQcBAQSBvjCBuzBSBggrBgEFBQcwAoZGaHR0cDovL2hoc3BraWNybC5tYW5hZ2VkLmVudHJ1
+c3QuY29tL0FJQS9DZXJ0c0lzc3VlZFRvSEhTRW50cnVzdENBLnA3YzAgBggrBgEFBQcwAYYUaHR0
+cDovL29jc3AuZGhocy5nb3YwQwYIKwYBBQUHMAGGN2h0dHA6Ly9oaHNwa2lvY3NwLm1hbmFnZWQu
+ZW50cnVzdC5jb20vT0NTUC9ISFNFbnRydXN0Q0EwHwYDVR0lBBgwFgYIKwYBBQUHAwQGCisGAQQB
+gjcKAwQwHgYDVR0RBBcwFYETbmlra2kubm9ydGhAbmloLmdvdjCCAS4GA1UdHwSCASUwggEhMIHc
+oIHZoIHWhj5odHRwOi8vaGhzcGtpY3JsLm1hbmFnZWQuZW50cnVzdC5jb20vQ1JMcy9ISFNFbnRy
+dXN0Q0FjMzI1LmNybKSBkzCBkDELMAkGA1UEBhMCVVMxGDAWBgNVBAoTD1UuUy4gR292ZXJubWVu
+dDEMMAoGA1UECxMDSEhTMSIwIAYDVQQLExlDZXJ0aWZpY2F0aW9uIEF1dGhvcml0aWVzMSQwIgYD
+VQQDExtISFMtRlBLSS1JbnRlcm1lZGlhdGUtQ0EtRTExDzANBgNVBAMTBkNSTDMyNTBAoD6gPIY6
+aHR0cDovL2hoc3BraWNybC5tYW5hZ2VkLmVudHJ1c3QuY29tL0NSTHMvSEhTRW50cnVzdENBLmNy
+bDAfBgNVHSMEGDAWgBRN1aomng5IvuVGLPjhAHQI+vZDRDAdBgNVHQ4EFgQU9Em7Izh22a2uZb85
+uoyIoB64jS0wDQYJKoZIhvcNAQELBQADggEBAATc5tR7Xvr6rIZ7q3h2r62a9RnV71uDZErNtJ9f
+HIisLcpf4ntxwRQP8v6t3h+7wMAx1Xh/io5veP1My4Tfz/d1FOaNyoeIr/8B7bTflZwXOmCgnqHa
+RUW1pZHbOtFipQzJpKfK45Djj2f5cfbjdxayMynuIodfFv7zF6eVkIqDUltyagTZX15a27vsc4qB
+gKT8ikuYGD/aHCsYhnWB0Lv6RPDMmWImXG/Rdw96huV7QOhs+bgzsRiFb1Ruy0njQF3fqpnsQ7Bl
+GBz6CAp9p7VT9wuU1ukwpczRqzkXM9wY182VpkjfctpbgSL/cO9d8WZtYcerUYcXJEqm0S0Ebx8w
+ggZBMIIFKaADAgECAgRRLP7PMA0GCSqGSIb3DQEBCwUAMH8xCzAJBgNVBAYTAlVTMRgwFgYDVQQK
+Ew9VLlMuIEdvdmVybm1lbnQxDDAKBgNVBAsTA0hIUzEiMCAGA1UECxMZQ2VydGlmaWNhdGlvbiBB
+dXRob3JpdGllczEkMCIGA1UEAxMbSEhTLUZQS0ktSW50ZXJtZWRpYXRlLUNBLUUxMB4XDTE0MDMw
+NjE0NDY0OVoXDTE2MDgwMzE1MTIyNVowgYgxCzAJBgNVBAYTAlVTMRgwFgYDVQQKEw9VLlMuIEdv
+dmVybm1lbnQxDDAKBgNVBAsTA0hIUzEMMAoGA1UECxMDTklIMQ8wDQYDVQQLEwZQZW9wbGUxMjAW
+BgNVBAMTD05pY29sZSBNLiBNYSAtUzAYBgoJkiaJk/IsZAEBEwowMDEyOTUyMjE2MIIBIjANBgkq
+hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAl4RjU0j0zLYgA4/fjDs9BtPhkO1qbtJalZeE1Fj4CFOP
+DLfTXNxusBJBosLqGiaP3C19ZrYS3oVenMcmd1YEgHXW1ANjV0Jsp5KKZBwqdtih+W42QpHV28GK
+tP1B0SQbmi+RKxayWocWngJ+cCGCPG+mRUA1RqVV6+/GaOs6rgmuTuvU3Czehp3TkVWLPyjot0cA
+gmwNGw5RjgM/DdCK7MHS3VXR+1FcJFNohmInvP6UfXBzLsHSLiY1WW+R0f+uQFx8kiVMhSfkm1Zu
+fAALTjDVApbGVbbAfIKt9P7Wt//GohIFc8S8Z0dKpr5ApnlvO21KKjyrXTiLiBl0XEgSrQIDAQAB
+o4ICuTCCArUwDgYDVR0PAQH/BAQDAgbAMBcGA1UdIAQQMA4wDAYKYIZIAWUDAgEDBzCBywYIKwYB
+BQUHAQEEgb4wgbswUgYIKwYBBQUHMAKGRmh0dHA6Ly9oaHNwa2ljcmwubWFuYWdlZC5lbnRydXN0
+LmNvbS9BSUEvQ2VydHNJc3N1ZWRUb0hIU0VudHJ1c3RDQS5wN2MwIAYIKwYBBQUHMAGGFGh0dHA6
+Ly9vY3NwLmRoaHMuZ292MEMGCCsGAQUFBzABhjdodHRwOi8vaGhzcGtpb2NzcC5tYW5hZ2VkLmVu
+dHJ1c3QuY29tL09DU1AvSEhTRW50cnVzdENBMCoGA1UdJQQjMCEGCCsGAQUFBwMEBgorBgEEAYI3
+CgMMBgkqhkiG9y8BAQUwHgYDVR0RBBcwFYETbmlra2kubm9ydGhAbmloLmdvdjCCAS4GA1UdHwSC
+ASUwggEhMIHcoIHZoIHWhj5odHRwOi8vaGhzcGtpY3JsLm1hbmFnZWQuZW50cnVzdC5jb20vQ1JM
+cy9ISFNFbnRydXN0Q0FjMzI1LmNybKSBkzCBkDELMAkGA1UEBhMCVVMxGDAWBgNVBAoTD1UuUy4g
+R292ZXJubWVudDEMMAoGA1UECxMDSEhTMSIwIAYDVQQLExlDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
+aWVzMSQwIgYDVQQDExtISFMtRlBLSS1JbnRlcm1lZGlhdGUtQ0EtRTExDzANBgNVBAMTBkNSTDMy
+NTBAoD6gPIY6aHR0cDovL2hoc3BraWNybC5tYW5hZ2VkLmVudHJ1c3QuY29tL0NSTHMvSEhTRW50
+cnVzdENBLmNybDAfBgNVHSMEGDAWgBRN1aomng5IvuVGLPjhAHQI+vZDRDAdBgNVHQ4EFgQUULdw
+zNbLpdeSseoZoBpbR/ti/KswDQYJKoZIhvcNAQELBQADggEBACDR16IerhWmZUlqitXgSWgxzWvU
++JuHPaTNG4oeg2+zOCbVqtntkcl+GRbrmfmy63aj1UWGaMPSjStmmyQmf0gGu2CUxVMqd5OfmSFl
+U06Aabt6KBXEcYcUmtoXt5pc0OS+amUhELfAswX0Omu84wakS0Vtijc1Hw2qfbDoil3WaKXGBFK8
+hBnXlmKtTRKwx5NybnSx6nVaH85yUXyND+KQJLRbf65ya9WsA+1ktkN0C+Wt6f4qWJiKudjrdD/w
+lGc/+iReSnHbwA7QKpJt5i+hJsSCGdwEOY8CCEJfSYe4Esd0Ff22cLykWC8VE2kShkVeK8v/mi7o
+3Afl6bWF6BgwggbEMIIFrKADAgECAgICAjANBgkqhkiG9w0BAQsFADBZMQswCQYDVQQGEwJVUzEY
+MBYGA1UEChMPVS5TLiBHb3Zlcm5tZW50MQ0wCwYDVQQLEwRGUEtJMSEwHwYDVQQDExhGZWRlcmFs
+IENvbW1vbiBQb2xpY3kgQ0EwHhcNMTAxMjE1MjExMjI2WhcNMjAxMjE1MjExMDI3WjBuMQswCQYD
+VQQGEwJVUzEQMA4GA1UEChMHRW50cnVzdDEiMCAGA1UECxMZQ2VydGlmaWNhdGlvbiBBdXRob3Jp
+dGllczEpMCcGA1UECxMgRW50cnVzdCBNYW5hZ2VkIFNlcnZpY2VzIFJvb3QgQ0EwggEiMA0GCSqG
+SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2e3PT/tEkZVdlrqJKqzlovKz4I0EGnD/47mhE5DutIji2
+fPZY/GKo9oLV10C8pFZxvb5pS9gwl9GR2myz3EEfqdFnmX+XCRDN+BOw5C0qUW/6tPYpV1QVdGKS
+n8IBQORXKILuI++LyQeA0rhpiBRt8bDGbCtLvuf1ywHc2/lrWOOkwlAzwJd15D6dnbBS2Iwgwwcl
+FXCtOf/bn051p8uP/8Y7+smiUAzsTg82bQ7ph3HTqHMeTLEGPeNBrV3Ct3EXO8iTCh1UD3JVf+LQ
+VWzy96iYxm4WIE+xL54fiLEAKvi3+RCTaWUDpylYKGsqu7y9c0d8n/g780SItWUogLulAgMBAAGj
+ggN/MIIDezAPBgNVHRMBAf8EBTADAQH/ME8GA1UdIARIMEYwDAYKYIZIAWUDAgEDBjAMBgpghkgB
+ZQMCAQMHMAwGCmCGSAFlAwIBAwgwDAYKYIZIAWUDAgEDDTAMBgpghkgBZQMCAQMRMIHpBggrBgEF
+BQcBAQSB3DCB2TA/BggrBgEFBQcwAoYzaHR0cDovL2h0dHAuZnBraS5nb3YvZmNwY2EvY2FDZXJ0
+c0lzc3VlZFRvZmNwY2EucDdjMIGVBggrBgEFBQcwAoaBiGxkYXA6Ly9sZGFwLmZwa2kuZ292L2Nu
+PUZlZGVyYWwlMjBDb21tb24lMjBQb2xpY3klMjBDQSxvdT1GUEtJLG89VS5TLiUyMEdvdmVybm1l
+bnQsYz1VUz9jQUNlcnRpZmljYXRlO2JpbmFyeSxjcm9zc0NlcnRpZmljYXRlUGFpcjtiaW5hcnkw
+ggEeBggrBgEFBQcBCwSCARAwggEMME0GCCsGAQUFBzAFhkFodHRwOi8vcm9vdHdlYi5tYW5hZ2Vk
+LmVudHJ1c3QuY29tL1NJQS9DZXJ0c0lzc3VlZEJ5RU1TUm9vdENBLnA3YzCBugYIKwYBBQUHMAWG
+ga1sZGFwOi8vcm9vdGRpci5tYW5hZ2VkLmVudHJ1c3QuY29tL291PUVudHJ1c3QlMjBNYW5hZ2Vk
+JTIwU2VydmljZXMlMjBSb290JTIwQ0Esb3U9Q2VydGlmaWNhdGlvbiUyMEF1dGhvcml0aWVzLG89
+RW50cnVzdCxjPVVTP2NBQ2VydGlmaWNhdGU7YmluYXJ5LGNyb3NzQ2VydGlmaWNhdGVQYWlyO2Jp
+bmFyeTAOBgNVHQ8BAf8EBAMCAQYwHwYDVR0jBBgwFoAUrQx6dVzl85jEeZgOrCj9l/TnAvwwgbgG
+A1UdHwSBsDCBrTAqoCigJoYkaHR0cDovL2h0dHAuZnBraS5nb3YvZmNwY2EvZmNwY2EuY3JsMH+g
+faB7hnlsZGFwOi8vbGRhcC5mcGtpLmdvdi9jbiUzZEZlZGVyYWwlMjBDb21tb24lMjBQb2xpY3kl
+MjBDQSxvdSUzZEZQS0ksbyUzZFUuUy4lMjBHb3Zlcm5tZW50LGMlM2RVUz9jZXJ0aWZpY2F0ZVJl
+dm9jYXRpb25MaXN0MB0GA1UdDgQWBBScYmYmnXG2p3VTZOGsscclPERdDTANBgkqhkiG9w0BAQsF
+AAOCAQEAXVWfBHBerDxxcvVxOL6igQoOUVAkboAEamT3BAwwtk0JZjZKWBO5sIux2YNayz9uPCQN
+nfZfn9IWeJNjM5H9H9dCUJ1UKtE24R1O0HvP0Y7vNUu6y5zndPrJTPpu2krUSzmiQsk/S3G7Cgwo
+HKxJMntMe6aa4ZoOQQ7DmZ2XKDHQKC6U0eshWIezENcgSxWkIM0xoyFKCU7fWhpL6CD4Y6QWjo+a
+04WWAsvgro071SOvfVImrFUH0pY9/WzlCI/v9UqRTtgJGHtZt0jgGZrDspVPJNTlpJwYt73bt9rI
+7Widn/jJHLTir7tAmZtxlm/DYPffEmZeWr9QaN7doGaTEzGCA6IwggOeAgEBMIGHMH8xCzAJBgNV
+BAYTAlVTMRgwFgYDVQQKEw9VLlMuIEdvdmVybm1lbnQxDDAKBgNVBAsTA0hIUzEiMCAGA1UECxMZ
+Q2VydGlmaWNhdGlvbiBBdXRob3JpdGllczEkMCIGA1UEAxMbSEhTLUZQS0ktSW50ZXJtZWRpYXRl
+LUNBLUUxAgRRLP7PMAkGBSsOAwIaBQCgggHvMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJ
+KoZIhvcNAQkFMQ8XDTE1MDMxMDIwMjU0M1owIwYJKoZIhvcNAQkEMRYEFPwehAiNpN5u61gX8/1N
+9v13VxDGMFgGCSqGSIb3DQEJDzFLMEkwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMAcGBSsO
+AwIHMA0GCCqGSIb3DQMCAgEoMAcGBSsOAwIaMAoGCCqGSIb3DQIFMIGYBgkrBgEEAYI3EAQxgYow
+gYcwfzELMAkGA1UEBhMCVVMxGDAWBgNVBAoTD1UuUy4gR292ZXJubWVudDEMMAoGA1UECxMDSEhT
+MSIwIAYDVQQLExlDZXJ0aWZpY2F0aW9uIEF1dGhvcml0aWVzMSQwIgYDVQQDExtISFMtRlBLSS1J
+bnRlcm1lZGlhdGUtQ0EtRTECBFEs/rIwgZoGCyqGSIb3DQEJEAILMYGKoIGHMH8xCzAJBgNVBAYT
+AlVTMRgwFgYDVQQKEw9VLlMuIEdvdmVybm1lbnQxDDAKBgNVBAsTA0hIUzEiMCAGA1UECxMZQ2Vy
+dGlmaWNhdGlvbiBBdXRob3JpdGllczEkMCIGA1UEAxMbSEhTLUZQS0ktSW50ZXJtZWRpYXRlLUNB
+LUUxAgRRLP6yMA0GCSqGSIb3DQEBAQUABIIBAGoqz5yHL9IJxEgHHH8cjKHLgUqjnMUHqn04rYpY
+lcXZhQ/jODg2tGkpmxuHO9WCksanmttJmQHCfH7iFPXGPmkUwJ7hCDGRDvZzdmStE7gYYzQr99MA
+VqIxyGbz0ylXhlX5Gi+ut16PjublCvAp80x7fmy4za6gIr5xFlh6AWreeB8ilgJ7SBAOBd3Kzbwr
+zfgTdy1Fd4gmUASDMiuA7s0V7yzvqFFc8PBTPLTmjg7w1X6y6sBAXa9Gw7cfyHfbPFOLoJ1Zq1as
+brnKKKZs3niv1xcr3juaNFsLTriyKyDGKb+UHXCvQwjy3grhIDKqZ4eBum7snpp5P0ZnaXDdiBIA
+AAAAAAA=
+
+------=_NextPart_000_0009_01D05B4E.DB1FDEA0--

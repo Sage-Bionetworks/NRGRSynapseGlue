@@ -14,6 +14,7 @@ public class MessageUtil {
 
 	public static MimeMessage readMessageFromInputStream(InputStream is) throws IOException, MessagingException {
 		Properties props = new Properties();
+		props.setProperty("mail.mime.cachemultipart", "false");
 		Session session = Session.getInstance(props);
 		return new MimeMessage(session, is);
 	}
