@@ -4,6 +4,7 @@ import static org.sagebionetworks.Util.getProperty;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -19,6 +20,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 
 public class TokenUtil {
 	private static final String PART_SEPARATOR = "|";
@@ -113,6 +115,10 @@ public class TokenUtil {
 	private static Set<TokenAnalysisResult> parseTokensFromMessageContent(Object content) throws IOException, MessagingException {
 		if (content instanceof String) {
 			return parseTokensFromString((String)content);
+		} else if (content instanceof InputStream) {
+			InputStream is = (InputStream)content;
+			String s = new String(IOUtils.toByteArray(is));
+			return parseTokensFromString(s);
 		} else if (content instanceof MimeMultipart) {
 			Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 			MimeMultipart mmp = (MimeMultipart) content;

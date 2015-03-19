@@ -388,12 +388,12 @@ public class NRGRSynapseGlue {
 				InputStream fileIs = null;
 				try {
 					
-					if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
-						MimeMessage message = MessageUtil.readMessageFromFile(temp);
-						if (!SMIMEValidator.isAValidSMIMESignedMessage(message)) {
-							throw new Exception("Message does not have a valid S/MIME signature.");
-						}						
-					}
+//					if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
+//						MimeMessage message = MessageUtil.readMessageFromFile(temp);
+//						if (!SMIMEValidator.isAValidSMIMESignedMessage(message)) {
+//							throw new Exception("Message does not have a valid S/MIME signature.");
+//						}						
+//					}
 					
 					fileIs = new FileInputStream(temp);
 					Set<TokenAnalysisResult> tokenAnalysisResults = parseTokensFromInput(IOUtils.toByteArray(fileIs));

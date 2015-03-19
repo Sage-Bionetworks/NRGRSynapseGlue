@@ -12,6 +12,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class SMIMEValidatorTest {
@@ -26,6 +27,7 @@ public class SMIMEValidatorTest {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void testSMIMEValidatorWithTwoAttachments() throws Exception {
 		String name = "nimh_with_two_attachments_smime.txt";

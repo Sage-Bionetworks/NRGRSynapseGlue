@@ -1,18 +1,48 @@
-X-Received: by 10.182.237.18 with SMTP id uy18mr28888297obc.36.1426016458471;
+                                                                                                                                                                                                                                                               
+Delivered-To: synapse@sagebase.org
+Received: by 10.36.74.143 with SMTP id k137csp2174822itb;
+        Tue, 10 Mar 2015 12:41:01 -0700 (PDT)
+X-Received: by 10.66.62.201 with SMTP id a9mr69476055pas.101.1426016461312;
+        Tue, 10 Mar 2015 12:41:01 -0700 (PDT)
+Return-Path: <nrgrlink+bncBAABBSUR7WTQKGQE2HGC7UY@sagebase.org>
+Received: from psmtp.com (na3sys009amx166.postini.com. [74.125.149.92])
+        by mx.google.com with SMTP id kl7si2516271pdb.199.2015.03.10.12.40.59
+        for <synapse@sagebase.org>;
+        Tue, 10 Mar 2015 12:41:00 -0700 (PDT)
+Received-SPF: pass (google.com: domain of nrgrlink+bncBAABBSUR7WTQKGQE2HGC7UY@sagebase.org designates 209.85.214.197 as permitted sender) client-ip=209.85.214.197;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of nrgrlink+bncBAABBSUR7WTQKGQE2HGC7UY@sagebase.org designates 209.85.214.197 as permitted sender) smtp.mail=nrgrlink+bncBAABBSUR7WTQKGQE2HGC7UY@sagebase.org
+Received: from mail-ob0-f197.google.com ([209.85.214.197]) (using TLSv1) by na3sys009amx166.postini.com ([74.125.148.10]) with SMTP;
+	Tue, 10 Mar 2015 19:40:59 GMT
+Received: by obcva2 with SMTP id va2sf22812480obc.0
+        for <synapse@sagebase.org>; Tue, 10 Mar 2015 12:40:58 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20130820;
+        h=x-gm-message-state:from:to:subject:thread-topic:thread-index:date
+         :message-id:accept-language:content-language:content-type
+         :mime-version:x-original-sender:x-original-authentication-results
+         :precedence:mailing-list:list-id:list-post:list-help:list-archive
+         :list-unsubscribe;
+        bh=BImJ9+u7IlxO7wSnAnWBvYyNF8t5t4CokDiEavcTUTc=;
+        b=CFxE3BKtDIHidl4DPk6wsPCvhpUtwKcpG9FnJwPfzPb4ZImM2P5c6+YYA+dJ6AFaB1
+         gCzshL5uGXBU9Pm4m4CPC7YSHfAMfIwcgmzrs5CI1TLqR9Cr8VgoNCqMJosmGNvLNSzO
+         sp+7g9lgMyQYdudKOkm274l17jBt+kdqtMNOHSE2S3NpuadUgph+64Jv1v46owkbtJ8q
+         hX8J3zBmkjeLRO2fI3zIX8tRAb/c/MUci7dz/UHPIE4rtXiRUzoiFX7NJJ4yQ/SBAeQu
+         AZbxx3Cpo/l2Kx6OcDuk2Z+D/uxNfLn1GUWST9hZG7hlCBCHRuqFdv5ICU0sMv8dieUF
+         5uww==
+X-Gm-Message-State: ALoCoQnm2dh4ZoiankJEJwGURcUUYbzZCfQ4ZT0+31vxEsiZP4TubAf2pC/FPoAcqWN4fr/Olu4i
+X-Received: by 10.182.5.104 with SMTP id r8mr34340713obr.19.1426016458446;
         Tue, 10 Mar 2015 12:40:58 -0700 (PDT)
 X-BeenThere: nrgrlink@sagebase.org
 Received: by 10.107.160.81 with SMTP id j78ls191942ioe.80.gmail; Tue, 10 Mar
  2015 12:40:58 -0700 (PDT)
 X-Received: by 10.70.90.110 with SMTP id bv14mr62895607pdb.8.1426016458213;
         Tue, 10 Mar 2015 12:40:58 -0700 (PDT)
-Return-Path: <nikki.north@nih.gov>
 Received: from psmtp.com (na3sys009amx187.postini.com. [74.125.149.168])
         by mx.google.com with SMTP id cc10si2907265pad.30.2015.03.10.12.40.57
         for <nrgrLink@sagebase.org>;
         Tue, 10 Mar 2015 12:40:58 -0700 (PDT)
 Received-SPF: pass (google.com: domain of nikki.north@nih.gov designates 128.231.90.111 as permitted sender) client-ip=128.231.90.111;
-Authentication-Results: mx.google.com;
-       spf=pass (google.com: domain of nikki.north@nih.gov designates 128.231.90.111 as permitted sender) smtp.mail=nikki.north@nih.gov
 Received: from nihxway3out.hub.nih.gov ([128.231.90.111]) by na3sys009amx187.postini.com ([74.125.148.10]) with SMTP;
 	Tue, 10 Mar 2015 19:40:57 GMT
 X-IronPortListener: Outbound_SMTP
@@ -34,7 +64,7 @@ Message-ID: <943B00C302957647B9272C6BC01687D134921F1A@msgb09.nih.gov>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator:
+X-MS-TNEF-Correlator: 
 x-originating-ip: [156.40.71.190]
 Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
 	micalg=SHA1; boundary="----=_NextPart_000_0000_01D05B48.9235D9C0"
@@ -43,8 +73,23 @@ X-pstn-mail-from: <nikki.north@nih.gov>
 X-pstn-dkim: 0 skipped:not-enabled
 X-pstn-nxpr: disp=neutral, envrcpt=nrgrLink@sagebase.org
 X-pstn-nxp: bodyHash=f2ca0a08697d91dc08151f062c9eb96142b2017a, headerHash=33722b5ea6b003a71b42773b04cb414e503ae34c, keyName=4, rcptHash=edf719018bb2abf3a0bafe48737f0db992c37a6f, sourceip=128.231.90.111, version=1
-X-pstn-nxpr: disp=neutral, envrcpt=nrgrLink@sagebase.org
-X-pstn-nxp: bodyHash=f2ca0a08697d91dc08151f062c9eb96142b2017a, headerHash=33722b5ea6b003a71b42773b04cb414e503ae34c, keyName=4, rcptHash=edf719018bb2abf3a0bafe48737f0db992c37a6f, sourceip=128.231.90.111, version=1
+X-Original-Sender: nikki.north@nih.gov
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com:
+ domain of nikki.north@nih.gov designates 128.231.90.111 as permitted sender) smtp.mail=nikki.north@nih.gov
+Precedence: list
+Mailing-list: list nrgrlink@sagebase.org; contact nrgrlink+owners@sagebase.org
+List-ID: <nrgrlink.sagebase.org>
+X-Google-Group-Id: 957723499801
+List-Post: <http://groups.google.com/a/sagebase.org/group/nrgrlink/post>, <mailto:nrgrlink@sagebase.org>
+List-Help: <http://support.google.com/a/sagebase.org/bin/topic.py?topic=25838>,
+ <mailto:nrgrlink+help@sagebase.org>
+List-Archive: <http://groups.google.com/a/sagebase.org/group/nrgrlink/>
+List-Unsubscribe: <mailto:googlegroups-manage+957723499801+unsubscribe@googlegroups.com>,
+ <http://groups.google.com/a/sagebase.org/group/nrgrlink/subscribe>
+X-pstn-mail-from: <nrgrlink+bncBAABBSUR7WTQKGQE2HGC7UY@sagebase.org>
+X-pstn-dkim: 0 skipped:not-enabled
+X-pstn-nxpr: disp=neutral, envrcpt=synapse@sagebase.org
+X-pstn-nxp: bodyHash=cfac90bb7e4217f1cfdf92648cd1cbca3dc13000, headerHash=31bfcfc31e282ef7d643f44be4720902833cce01, keyName=4, rcptHash=dd98948495c1ac6f3776d32a9121d36e76318975, sourceip=209.85.214.197, version=1
 
 ------=_NextPart_000_0000_01D05B48.9235D9C0
 Content-Type: multipart/mixed;
@@ -55,9 +100,7 @@ Content-Type: multipart/alternative;
 	boundary="----=_NextPart_002_0002_01D05B48.9235D9C0"
 
 ------=_NextPart_002_0002_01D05B48.9235D9C0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 
 Test email for NRGR Synapse integration for CMC. 
 
@@ -81,10 +124,14 @@ iPhone: 301-605-0592
 
  
 
+-- 
+You received this message because you are subscribed to the Google Groups "nrgrLink" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to nrgrlink+unsubscribe@sagebase.org.
+To post to this group, send email to nrgrlink@sagebase.org.
+To view this discussion on the web visit https://groups.google.com/a/sagebase.org/d/msgid/nrgrlink/943B00C302957647B9272C6BC01687D134921F1A%40msgb09.nih.gov.
 
 ------=_NextPart_002_0002_01D05B48.9235D9C0
-Content-Type: text/html;
-	charset="us-ascii"
+Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 <html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
@@ -95,34 +142,34 @@ xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
 oft Word 14 (filtered medium)"><style><!--
 /* Font Definitions */
 @font-face
-=09{font-family:Calibri;
-=09panose-1:2 15 5 2 2 2 4 3 2 4;}
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
 /* Style Definitions */
 p.MsoNormal, li.MsoNormal, div.MsoNormal
-=09{margin:0in;
-=09margin-bottom:.0001pt;
-=09font-size:11.0pt;
-=09font-family:"Calibri","sans-serif";}
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
 a:link, span.MsoHyperlink
-=09{mso-style-priority:99;
-=09color:blue;
-=09text-decoration:underline;}
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
 a:visited, span.MsoHyperlinkFollowed
-=09{mso-style-priority:99;
-=09color:purple;
-=09text-decoration:underline;}
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
 span.EmailStyle17
-=09{mso-style-type:personal-compose;
-=09font-family:"Calibri","sans-serif";
-=09color:windowtext;}
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
 .MsoChpDefault
-=09{mso-style-type:export-only;
-=09font-family:"Calibri","sans-serif";}
+	{mso-style-type:export-only;
+	font-family:"Calibri","sans-serif";}
 @page WordSection1
-=09{size:8.5in 11.0in;
-=09margin:1.0in 1.0in 1.0in 1.0in;}
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
 div.WordSection1
-=09{page:WordSection1;}
+	{page:WordSection1;}
 --></style><!--[if gte mso 9]><xml>
 <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
 </xml><![endif]--><!--[if gte mso 9]><xml>
@@ -147,8 +194,24 @@ MsoNormal><span style=3D'font-size:10.0pt;color:navy'>Office Phone: 301-443=
 northnm@mail.nih.gov"><span style=3D'color:blue'>northnm@mail.nih.gov</span=
 ></a> </span><o:p></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p></div=
 ></body></html>
-------=_NextPart_002_0002_01D05B48.9235D9C0--
 
+<p></p>
+
+-- <br />
+You received this message because you are subscribed to the Google Groups &=
+quot;nrgrLink&quot; group.<br />
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to <a href=3D"mailto:nrgrlink+unsubscribe@sagebase.org">nrgrlink+unsub=
+scribe@sagebase.org</a>.<br />
+To post to this group, send email to <a href=3D"mailto:nrgrlink@sagebase.or=
+g">nrgrlink@sagebase.org</a>.<br />
+To view this discussion on the web visit <a href=3D"https://groups.google.c=
+om/a/sagebase.org/d/msgid/nrgrlink/943B00C302957647B9272C6BC01687D134921F1A=
+%40msgb09.nih.gov?utm_medium=3Demail&utm_source=3Dfooter">https://groups.go=
+ogle.com/a/sagebase.org/d/msgid/nrgrlink/943B00C302957647B9272C6BC01687D134=
+921F1A%40msgb09.nih.gov</a>.<br />
+
+------=_NextPart_002_0002_01D05B48.9235D9C0--
 ------=_NextPart_001_0001_01D05B48.9235D9C0
 Content-Type: text/plain;
 	name="2015Mar10 RPI Token.txt"
@@ -156,31 +219,31 @@ Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment;
 	filename="2015Mar10 RPI Token.txt"
 
-Dear Bruce Hoff:
-
-As part of your application to the NIMH Repository and Genomics Resources (=
-RGR) for access to the CommonMind data, you must include the following Syna=
-pse data access token with the application documents: https://www.nimhgenet=
-ics.org/available_data/brain/.
-
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
-ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-|1449507|3248760|1426009850945|ymV7OYB9MVkokKl/TjmdaxluKDU=3D|
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
-ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-Please copy the three-line token (above) along with the tokens generated by=
- all individuals from your group working on the study into a document label=
-ed "CMC_SynapseToken_PIname_Date" and submit the document as part of the RG=
-R application. If you are not the PI on the RGR application, please provide=
- your token to the study PI so they may submit it.
-
-Note:  This token is valid for 122 days.  If the application is not approve=
-d within that time, a new token must be submitted.
-
-Sincerely,
-
+Dear Bruce Hoff:=0A=
+=0A=
+As part of your application to the NIMH Repository and Genomics =
+Resources (RGR) for access to the CommonMind data, you must include the =
+following Synapse data access token with the application documents: =
+https://www.nimhgenetics.org/available_data/brain/.=0A=
+=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN =
+BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+|1449507|3248760|1426009850945|ymV7OYB9MVkokKl/TjmdaxluKDU=3D|=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN =
+BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+=0A=
+Please copy the three-line token (above) along with the tokens generated =
+by all individuals from your group working on the study into a document =
+labeled "CMC_SynapseToken_PIname_Date" and submit the document as part =
+of the RGR application. If you are not the PI on the RGR application, =
+please provide your token to the study PI so they may submit it.=0A=
+=0A=
+Note:  This token is valid for 122 days.  If the application is not =
+approved within that time, a new token must be submitted.=0A=
+=0A=
+Sincerely,=0A=
+=0A=
 Synapse Access and Compliance Team
 ------=_NextPart_001_0001_01D05B48.9235D9C0
 Content-Type: text/plain;
@@ -189,21 +252,20 @@ Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment;
 	filename="2015Mar09MyToken.txt"
 
-
-gobblydygook
-
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
-ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-|273960|3248760|1426009855043|T4UVr5Uw75S30Zbh7Gf9EglgUoE=3D|
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN BOUND=
-ARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-
-gobblydygook
+=0A=
+gobblydygook=0A=
+=0A=
+=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN =
+BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+|273960|3248760|1426009855043|T4UVr5Uw75S30Zbh7Gf9EglgUoE=3D|=0A=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE NRGR LINK TOKEN =
+BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
+=0A=
+=0A=
+gobblydygook=0A=
 
 ------=_NextPart_001_0001_01D05B48.9235D9C0--
-
 ------=_NextPart_000_0000_01D05B48.9235D9C0
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
