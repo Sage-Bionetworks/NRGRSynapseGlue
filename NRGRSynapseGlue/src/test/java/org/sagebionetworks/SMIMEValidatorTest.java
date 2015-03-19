@@ -20,7 +20,7 @@ public class SMIMEValidatorTest {
 	private MimeMessage readMimeMessageFromFile(String name) throws IOException, MessagingException {
 		InputStream is = null;
 		try {
-			is = MessageUtilTest.class.getClassLoader().getResourceAsStream(name);
+			is = SMIMEValidatorTest.class.getClassLoader().getResourceAsStream(name);
 			return MessageUtil.readMessageFromInputStream(is);
 		} finally {
 			if (is!=null) is.close();
