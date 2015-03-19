@@ -127,25 +127,5 @@ public class TokenUtilTest {
 
 	}
 
-	@Test
-	public void testParseTokenFromSMIMEWithAttachmentsGoogleGroup() throws Exception {
-		InputStream is = null;
-		try {
-			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("nimh_with_two_attachments_googlegroup_smime.txt");
-			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is));
-			assertEquals(2, tars.size());
-			for (TokenAnalysisResult tar : tars) {
-				assertTrue(tar.isValid());
-				assertTrue(273960L==tar.getUserId() || 1449507L==tar.getUserId());
-				TokenContent tc = tar.getTokenContent();
-				assertEquals(tar.getUserId().longValue(), tc.getUserId());
-				assertEquals(Collections.singletonList(3248760L), tc.getAccessRequirementIds());
-				
-			}
-		} finally {
-			is.close();
-		}
-
-	}
 
 }

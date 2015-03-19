@@ -85,11 +85,7 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcmail-jdk15on</artifactId>
-			<version>1.52</version>
-		</dependency>
+
 
 		<!-- For oauth token generation -->
 		<dependency>
