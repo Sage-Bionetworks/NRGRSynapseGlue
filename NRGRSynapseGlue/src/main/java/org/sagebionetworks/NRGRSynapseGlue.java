@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.entity.ContentType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -305,11 +307,7 @@ public class NRGRSynapseGlue {
 	}
 
 	private void sendMessage(MessageToUser messageToUser, String messageBody) throws SynapseException {
-		if (true) {
 			synapseClient.sendStringMessage(messageToUser, messageBody);
-		} else {
-			System.out.println("Sending message to "+messageToUser.getRecipients());
-		}
 	}
 
 	private static String salutation(UserProfile up) {
@@ -583,7 +581,7 @@ public class NRGRSynapseGlue {
 		return confirmedRejected;
 	}
 
-	private void sendApproveNotifications(Collection<String> userIds) {
+	public void sendApproveNotifications(Collection<String> userIds) {
 		for (String userId : userIds) {
 			try {
 				UserProfile userProfile = synapseClient.getUserProfile(userId);
@@ -592,9 +590,12 @@ public class NRGRSynapseGlue {
 				message.setRecipients(Collections.singleton(userId));
 				StringBuilder messageBody = new StringBuilder();
 				messageBody.append(salutation(userProfile));
-				messageBody.append("\nYou have been approved to access the Common Mind Consortium data.\n");
-				messageBody.append(MESSAGE_SIGNATURE_LINE);
-				sendMessage(message, messageBody.toString());
+				messageBody.append("<div><br></div><div>The NRGR has approved you for access to the Common Mind Consortium data release 1. This data may be accessed through the CommonMind Consortium Knowledge Portal:<a target=\"_blank\" class=\"\" href=\"http://dx.doi.org/10.7303/syn2759792\" style=\"color:rgb(58,91,220);text-decoration:none;font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px\">doi:10.7303/syn2759792</a>.</div><div><br></div><div>Please note that the first time you download a Controlled Access data file you will be asked to acknowledge the CommonMind Consortium in publications derived from use of the data. Also note that there is an embargo on the publication of whole genome analysis based on the bipolar samples until August 1, 2015. Agreement to these terms must be performed through the website.<br></div><div><br></div><div>For a review of the CommonMind Data Terms of Use, please see here:<a href=\"https://www.synapse.org/#!Synapse:syn2759792/wiki/197282\">https://www.synapse.org/#!Synapse:syn2759792/wiki/197282</a><br></div><div><br></div><div><div>Please note, this email is sent from an unmonitored account. Send any questions to <a href=\"mailto:act@sagebase.org\">act@sagebase.org</a>.</div></div><div><br></div><div><div>Sincerely,</div><div>The Synapse Access and Compliance Team</div></div>");
+				Charset charset = Charset.forName("UTF-8");
+				ContentType contentType = ContentType.create("text/html", charset);
+				String fileHandleId = synapseClient.uploadToFileHandle(messageBody.toString().getBytes(charset), contentType, getProperty("MESSAGE_CONTAINER_ENTITY_ID"));
+				message.setFileHandleId(fileHandleId);
+				synapseClient.sendMessage(message);
 			} catch (SynapseException e) {
 				// if the message fails, just log it and go on to the next one
 				e.printStackTrace();
