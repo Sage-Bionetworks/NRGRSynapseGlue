@@ -27,12 +27,17 @@ public class Util {
 	}
 
 	public static String getProperty(String key) {
+		return getProperty(key, false);
+	}
+		
+	public static String getProperty(String key, boolean missingIsOK) {
 		initProperties();
 		String commandlineOption = System.getProperty(key);
 		if (commandlineOption!=null) return commandlineOption;
 		String embeddedProperty = properties.getProperty(key);
 		if (embeddedProperty!=null) return embeddedProperty;
-		throw new RuntimeException("Cannot find value for "+key);
+		if (!missingIsOK) throw new RuntimeException("Cannot find value for "+key);
+		return null;
 	}	
 
 

@@ -31,7 +31,7 @@ public class TokenUtil {
 	private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
 	public static final String TOKEN_TERMINATOR = 
-			"=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============";
+			"=============== SYNAPSE LINK TOKEN BOUNDARY ===============";
 
 	private static List<Long> arIdsFromArString(String accessRequirementIdString) {
 		List<Long> accessRequirementIds = new ArrayList<Long>();

@@ -34,7 +34,8 @@ public class SubmissionMessageHandler implements MessageHandler {
 			submission.setEntityId(fileEntity.getId());
 			submission.setVersionNumber(fileEntity.getVersionNumber());
 			submission.setEvaluationId(evaluationId);
-			submission = synapseClient.createIndividualSubmission(submission, fileEntity.getEtag());
+			submission = synapseClient.createIndividualSubmission(submission, fileEntity.getEtag(),
+					"https://www.synapse.org/#!Synapse:", null);
 		} catch (SynapseException e) {
 			throw new RuntimeException(e);
 		}
