@@ -67,6 +67,31 @@ public class TokenUtilTest {
 	}
 	
 	@Test
+	public void testParseTokenFromMessageContentWithOldTerminator() throws Exception {
+		Long userId = new Long(273995L);
+		Long timestamp = System.currentTimeMillis();
+		List<Long> arIds = Arrays.asList(new Long[]{111111L, 222222L, 333333L});
+		String unsignedToken = TokenUtil.createUnsignedToken(""+userId, arIds, ""+timestamp);
+		String signedToken = unsignedToken+TokenUtil.hmac(unsignedToken)+"|";
+		String fileContent= TokenUtil.OLD_TOKEN_TERMINATOR+"\\\n"+
+				signedToken+"\n"+TokenUtil.OLD_TOKEN_TERMINATOR+"}";
+		Set<TokenAnalysisResult> tars = TokenUtil.
+				parseTokensFromInput(fileContent.getBytes());
+		assertEquals(1, tars.size());
+		TokenAnalysisResult tar = tars.iterator().next();
+		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
+
+		fileContent = 
+				TokenUtil.OLD_TOKEN_TERMINATOR+"\\\n"+
+						signedToken+"\\\n"+TokenUtil.OLD_TOKEN_TERMINATOR+"}";
+		tars = TokenUtil.
+				parseTokensFromInput(fileContent.getBytes());
+		assertEquals(1, tars.size());
+		tar = tars.iterator().next();
+		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
+	}
+	
+	@Test
 	public void testParseTokenFromInlineMessage() throws Exception {
 		InputStream is = null;
 		try {

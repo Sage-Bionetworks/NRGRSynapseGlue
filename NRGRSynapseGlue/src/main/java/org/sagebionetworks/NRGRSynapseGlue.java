@@ -529,8 +529,12 @@ public class NRGRSynapseGlue {
 			total = pgs.getTotalNumberOfResults();
 			for (MembershipRequest mr : pgs.getResults()) {
 				if(userIds.contains(mr.getUserId())) {
-					synapseClient.addTeamMember(teamId, mr.getUserId(), 
+					try {
+						synapseClient.addTeamMember(teamId, mr.getUserId(), 
 							"https://www.synapse.org/#!Team:", null);
+					} catch (SynapseException e) {
+						throw new RuntimeException("Team Id: "+teamId+" userId: "+mr.getUserId(), e);
+					}
 				}
 			}
 		}

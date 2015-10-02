@@ -32,6 +32,11 @@ public class TokenUtil {
 
 	public static final String TOKEN_TERMINATOR = 
 			"=============== SYNAPSE LINK TOKEN BOUNDARY ===============";
+	
+	// we made the token terminator generic but we have to recognize terminators
+	// from tokens which may have been generated before the change.
+	public static final String OLD_TOKEN_TERMINATOR = 
+			"=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============";
 
 	private static List<Long> arIdsFromArString(String accessRequirementIdString) {
 		List<Long> accessRequirementIds = new ArrayList<Long>();
@@ -132,24 +137,30 @@ public class TokenUtil {
 		}
 	}
 
-	/*
+	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent) throws IOException {
+		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
+		result.addAll(parseTokensFromString(messageContent, TOKEN_TERMINATOR));
+		result.addAll(parseTokensFromString(messageContent, OLD_TOKEN_TERMINATOR));
+		return result;
+	}
+		/*
 	 * Since a message may include the same content multiple times (e.g. as plain text
 	 * and html) we combine the extracted tokens in a Set to eliminate duplicates)
 	 */
-	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent) throws IOException {
+	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent, String tokenTerminator) throws IOException {
 		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 		int start = 0;
-		int leadingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, start);
+		int leadingTerminator = messageContent.indexOf(tokenTerminator, start);
 		while (leadingTerminator>=0) {
-			int tokenStart = leadingTerminator+TOKEN_TERMINATOR.length();
-			int trailingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, tokenStart);
+			int tokenStart = leadingTerminator+tokenTerminator.length();
+			int trailingTerminator = messageContent.indexOf(tokenTerminator, tokenStart);
 			if (trailingTerminator<0) { 
 				break;
 			} else {
 				result.add(parseToken( messageContent.substring(tokenStart, trailingTerminator).trim()));
-				start = trailingTerminator+TOKEN_TERMINATOR.length();
+				start = trailingTerminator+tokenTerminator.length();
 			}
-			leadingTerminator = messageContent.indexOf(TOKEN_TERMINATOR, start);
+			leadingTerminator = messageContent.indexOf(tokenTerminator, start);
 		} 
 		return result;
 	}
