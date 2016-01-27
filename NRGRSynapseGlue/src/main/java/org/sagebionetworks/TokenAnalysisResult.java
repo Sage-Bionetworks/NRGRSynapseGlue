@@ -1,13 +1,13 @@
 package org.sagebionetworks;
 
 public class TokenAnalysisResult {
-	// the content of the analysed token or null if impossible to analyse
+	// the content of the analyzed token or null if impossible to analyze
 	private TokenContent tokenContent;
 	// true iff the token is valid
 	private boolean isValid;
 	// the userId, if possible to discern from the token
 	private Long userId;
-	// if invalid, the reason so
+	// if invalid, the reason why
 	private String reason;
 	
 	public TokenAnalysisResult(TokenContent tokenContent, boolean isValid, Long userId,

@@ -31,13 +31,18 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import javax.mail.Address;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.Transport;
 import javax.mail.URLName;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpException;
@@ -69,6 +74,7 @@ public class IMAPClient {
 		Security.addProvider(new OAuth2Provider());	  
 	}
 
+	private Session session;
 	private IMAPStore imapStore;
 	
 	/**
@@ -109,11 +115,9 @@ public class IMAPClient {
 	 * @throws HttpException 
 	 * @throws MessagingException 
 	 */
-	public static IMAPStore connectToImap(String host,
+	public static Session getSession(String host,
 			int port,
 			boolean debug) throws HttpException, IOException, MessagingException {
-		String userEmail = getProperty("GMAIL_ADDRESS");
-
 		String oauthToken = getGmailOAuthAccessToken();
 
 		Properties props = new Properties();
@@ -124,10 +128,17 @@ public class IMAPClient {
 		session.setDebug(debug);
 		session.getProperties().setProperty("mail.mime.cachemultipart", Boolean.FALSE.toString());
 
-		final URLName unusedUrlName = null;
+		return session;
+	}
+
+	public static IMAPStore connectToImap(String host,
+			int port,
+			Session session) throws HttpException, IOException, MessagingException {
+		URLName unusedUrlName = null;
 		IMAPSSLStore store = new IMAPSSLStore(session, unusedUrlName);
 
-		final String emptyPassword = "";
+		String userEmail = getProperty("GMAIL_ADDRESS");
+		String emptyPassword = "";
 		store.connect(host, port, userEmail, emptyPassword);
 		return store;
 	}
@@ -154,13 +165,33 @@ public class IMAPClient {
 			response.close();
 		} 
 	}
+	
+	public void sendMessage(Address from, Address[] to, String subject, MimeMultipart content) {
+		try {
+			if (session==null) {
+				session = getSession("imap.gmail.com", 993, false);
+			}
+			Message message = new MimeMessage(session);
+			message.setFrom(from);
+			message.setRecipients(Message.RecipientType.TO, to);
+			message.setSubject(subject);
+			message.setContent(content);
+
+			Transport.send(message);
+		} catch (HttpException | IOException | MessagingException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	/**
 	 * Connects to Gmail account and downloads pdf files
 	 */
 	public Map<Integer, byte[]> getMessages(String emailFolder) throws Exception {
+		if (session==null) {
+			session = getSession("imap.gmail.com", 993, false);
+		}
 		if (imapStore==null) {
-			imapStore = connectToImap("imap.gmail.com", 993, false);
+			imapStore = connectToImap("imap.gmail.com", 993, session);
 		}
 		Folder folder = imapStore.getFolder(emailFolder);
 		folder.open(READ_ONLY);  
