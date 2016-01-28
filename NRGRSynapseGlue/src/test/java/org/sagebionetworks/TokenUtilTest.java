@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -27,14 +30,25 @@ public class TokenUtilTest {
 		assertEquals(arIds, tc.getAccessRequirementIds());
 	}
 	
-	@Test
+    private static final DateFormat df = new SimpleDateFormat("MMM dd yyyy");
+    private static final long currentTimeForTesting;
+    static { 
+    	try {
+    		currentTimeForTesting =  df.parse("Apr 1 2015").getTime(); 
+    	} catch (ParseException e) {
+    		throw new RuntimeException(e);
+    	}
+    }
+
+    @Test
 	public void testCreateToken() throws Exception {
 		Long userId = new Long(273995L);
 		long now = System.currentTimeMillis();
 		long mrExpiration = now - 1000L; // just make it different
 		DatasetSettings settings = new DatasetSettings();
+		settings.setAccessRequirementIds(Collections.singletonList(111L));
 		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
-		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes());
+		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
 		assertEquals(1, tars.size());
 		TokenAnalysisResult tar = tars.iterator().next();
 		assertTrue(tar.isValid());
@@ -55,7 +69,7 @@ public class TokenUtilTest {
 		String fileContent= TokenUtil.TOKEN_TERMINATOR+"\\\n"+
 				signedToken+"\n"+TokenUtil.TOKEN_TERMINATOR+"}";
 		Set<TokenAnalysisResult> tars = TokenUtil.
-				parseTokensFromInput(fileContent.getBytes());
+				parseTokensFromInput(fileContent.getBytes(), currentTimeForTesting);
 		assertEquals(1, tars.size());
 		TokenAnalysisResult tar = tars.iterator().next();
 		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
@@ -64,7 +78,7 @@ public class TokenUtilTest {
 				TokenUtil.TOKEN_TERMINATOR+"\\\n"+
 						signedToken+"\\\n"+TokenUtil.TOKEN_TERMINATOR+"}";
 		tars = TokenUtil.
-				parseTokensFromInput(fileContent.getBytes());
+				parseTokensFromInput(fileContent.getBytes(), currentTimeForTesting);
 		assertEquals(1, tars.size());
 		tar = tars.iterator().next();
 		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
@@ -80,7 +94,7 @@ public class TokenUtilTest {
 		String fileContent= TokenUtil.OLD_TOKEN_TERMINATOR+"\\\n"+
 				signedToken+"\n"+TokenUtil.OLD_TOKEN_TERMINATOR+"}";
 		Set<TokenAnalysisResult> tars = TokenUtil.
-				parseTokensFromInput(fileContent.getBytes());
+				parseTokensFromInput(fileContent.getBytes(), currentTimeForTesting);
 		assertEquals(1, tars.size());
 		TokenAnalysisResult tar = tars.iterator().next();
 		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
@@ -89,7 +103,7 @@ public class TokenUtilTest {
 				TokenUtil.OLD_TOKEN_TERMINATOR+"\\\n"+
 						signedToken+"\\\n"+TokenUtil.OLD_TOKEN_TERMINATOR+"}";
 		tars = TokenUtil.
-				parseTokensFromInput(fileContent.getBytes());
+				parseTokensFromInput(fileContent.getBytes(), currentTimeForTesting);
 		assertEquals(1, tars.size());
 		tar = tars.iterator().next();
 		checkTokenAnalysisResult(userId, timestamp, arIds, tar);
@@ -100,10 +114,10 @@ public class TokenUtilTest {
 		InputStream is = null;
 		try {
 			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("mimeWithTokenInLine.txt");
-			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is));
-			assertEquals(1, tars.size());
+			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), currentTimeForTesting);
+			assertEquals(tars.toString(), 1, tars.size());
 			TokenAnalysisResult tar = tars.iterator().next();
-			assertTrue(tar.isValid());
+			assertTrue(tar.getReason(), tar.isValid());
 			assertEquals(new Long(273960L), tar.getUserId());
 			TokenContent tc = tar.getTokenContent();
 			assertEquals(273960L, tc.getUserId());
@@ -120,10 +134,10 @@ public class TokenUtilTest {
 		InputStream is = null;
 		try {
 			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("mimeWithTokenAttachment.txt");
-			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is));
+			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), currentTimeForTesting);
 			assertEquals(1, tars.size());
 			TokenAnalysisResult tar = tars.iterator().next();
-			assertTrue(tar.isValid());
+			assertTrue(tar.getReason(), tar.isValid());
 			assertEquals(new Long(273960L), tar.getUserId());
 			TokenContent tc = tar.getTokenContent();
 			assertEquals(273960L, tc.getUserId());
@@ -140,10 +154,10 @@ public class TokenUtilTest {
 		InputStream is = null;
 		try {
 			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("nimh_with_two_attachments_smime.txt");
-			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is));
+			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), currentTimeForTesting);
 			assertEquals(2, tars.size());
 			for (TokenAnalysisResult tar : tars) {
-				assertTrue(tar.isValid());
+				assertTrue(tar.getReason(), tar.isValid());
 				assertTrue(273960L==tar.getUserId() || 1449507L==tar.getUserId());
 				TokenContent tc = tar.getTokenContent();
 				assertEquals(tar.getUserId().longValue(), tc.getUserId());

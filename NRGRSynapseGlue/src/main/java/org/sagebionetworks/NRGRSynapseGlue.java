@@ -233,7 +233,8 @@ public class NRGRSynapseGlue {
 				}
 				
 				fileIs = new FileInputStream(temp);
-				Set<TokenAnalysisResult> tokenAnalysisResults = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs));
+				Set<TokenAnalysisResult> tokenAnalysisResults = 
+						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), System.currentTimeMillis());
 				int validTokensInMessage = 0;
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
@@ -324,7 +325,7 @@ public class NRGRSynapseGlue {
 			for (MimeMessageAndReason mmr : mimeMessageAndReasons) {
 				MimeMessage mimeMessage = mmr.getMimeMessage();
 				MimeMultipart content = new MimeMultipart();
-				// TODO add a message to the sender, including the reason for the rejection
+				// add a message to the sender, including the reason for the rejection
 				MimeBodyPart reason = new MimeBodyPart();
 				reason.setContent(mmr.getReason(), ContentType.TEXT_PLAIN.getMimeType());
 				content.addBodyPart(reason);
