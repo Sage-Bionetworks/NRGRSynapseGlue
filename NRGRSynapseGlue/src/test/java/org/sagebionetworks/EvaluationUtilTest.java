@@ -29,11 +29,11 @@ import org.sagebionetworks.repo.model.annotation.StringAnnotation;
 import com.amazonaws.util.IOUtils;
 
 public class EvaluationUtilTest {
-	private SynapseClient synapseClient;
 	
 	private static final String FILE_CONTENT = "some file content";
 	private static final ContentType CONTENT_TYPE = ContentType.create("text/plain", Charset.defaultCharset());
     
+	private SynapseClient synapseClient;
     private Project project;
     private Evaluation evaluation;
     private FileEntity file;

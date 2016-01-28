@@ -91,7 +91,7 @@ public class NRGRSynapseGlue {
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);
 		messageUtil = new MessageUtil(synapseClient);
-		tableUtil = new TableUtil(synapseClient);
+		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
 	}
 

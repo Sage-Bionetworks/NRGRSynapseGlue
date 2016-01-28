@@ -1,7 +1,5 @@
 package org.sagebionetworks;
 
-import static org.sagebionetworks.Util.getProperty;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,17 +36,19 @@ public class TableUtil {
 
 	private SynapseClient synapseClient;
 	
+	private String tableId;
+	
 
-	public TableUtil(SynapseClient synapseClient) {
+	public TableUtil(SynapseClient synapseClient, String tableId) {
 		this.synapseClient=synapseClient;
+		this.tableId=tableId;
 	}
 	
 	public List<MembershipRequest> getNewMembershipRequests(Collection<MembershipRequest> membershipRequests) throws SynapseException, InterruptedException {
 		if (membershipRequests.isEmpty()) return Collections.EMPTY_LIST;
-		String tableId = getProperty("TABLE_ID");
 		StringBuilder sb = new StringBuilder("SELECT ");
 		sb.append("\""+USER_ID+"\", ");
-		sb.append("\""+MEMBERSHIP_REQUEST_EXPIRATION_DATE+"\", ");
+		sb.append("\""+MEMBERSHIP_REQUEST_EXPIRATION_DATE+"\" ");
 		sb.append(" FROM "+tableId+" WHERE "+USER_ID+" IN (");
 		boolean firstTime = true;
 		String teamId = null;
@@ -94,7 +94,6 @@ public class TableUtil {
 		RowSet rowSet = new RowSet();
 		result.setRowSet(rowSet);
 		if (tcs.isEmpty())  return result;
-		String tableId = getProperty("TABLE_ID");
 		StringBuilder sb = new StringBuilder("SELECT * FROM ");
 		sb.append(tableId+" WHERE "+USER_ID+" IN (");
 		boolean firstTime = true;
