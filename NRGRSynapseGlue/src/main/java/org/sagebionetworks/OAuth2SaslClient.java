@@ -18,7 +18,6 @@
 package org.sagebionetworks;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -32,8 +31,6 @@ import javax.security.sasl.SaslException;
  * An OAuth2 implementation of SaslClient.
  */
 class OAuth2SaslClient implements SaslClient {
-  private static final Logger logger =
-      Logger.getLogger(OAuth2SaslClient.class.getName());
 
   private final String oauthToken;
   private final CallbackHandler callbackHandler;

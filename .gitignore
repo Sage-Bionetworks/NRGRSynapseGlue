@@ -1,0 +1,7 @@
+**/target
+**/.DS_Store
+NRGRSynapseGlue/src/main/resources/
+**/.classpath
+**/.editorconfig
+**/.project
+**/.settings

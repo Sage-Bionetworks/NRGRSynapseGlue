@@ -46,7 +46,9 @@ public class TokenUtilTest {
 		long now = System.currentTimeMillis();
 		long mrExpiration = now - 1000L; // just make it different
 		DatasetSettings settings = new DatasetSettings();
+		settings.setTokenLabel("PsychENCODE");
 		settings.setAccessRequirementIds(Collections.singletonList(111L));
+		settings.setApplicationTeamId("12345");
 		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
 		assertEquals(1, tars.size());

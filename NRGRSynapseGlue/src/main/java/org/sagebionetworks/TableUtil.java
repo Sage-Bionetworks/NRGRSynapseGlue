@@ -196,13 +196,6 @@ public class TableUtil {
 		return result;
 	}
 
-	public static SelectColumn getColumnForName(List<SelectColumn> columns, String name)  {
-		for (SelectColumn column : columns) {
-			if (column.getName().equals(name)) return column;
-		}
-		throw new IllegalArgumentException("No column named "+name);
-	}
-
 	public static int getColumnIndexForName(List<SelectColumn> columns, String name)  {
 		for (int i=0; i<columns.size(); i++) {
 			if (columns.get(i).getName().equals(name)) return i;

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import javax.mail.Address;
 import javax.mail.Flags;
@@ -40,7 +39,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.URLName;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
@@ -64,8 +62,6 @@ import com.sun.mail.imap.IMAPStore;
  * from a given folder, and move messages between folders.
  */
 public class IMAPClient {
-	private static final Logger logger = Logger.getLogger(IMAPClient.class.getName());
-
 	static {
 		/**
 		 * Installs the OAuth2 SASL provider. This must be called exactly once before
