@@ -86,7 +86,7 @@ public class NRGRSynapseGlue {
 	 */
 
 	public NRGRSynapseGlue() throws SynapseException {
-		synapseClient = createSynapseClient();
+		synapseClient = Util.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);
@@ -188,7 +188,9 @@ public class NRGRSynapseGlue {
 	// convert incoming mail messages to Submission in the queue
 	public void checkForMail() throws Exception {
 		IMAPClient mailClient = new IMAPClient();
-		mailClient.processNewMessages(new SubmissionMessageHandler(synapseClient));
+		String messageParentId = getProperty("MESSAGE_CONTAINER_ENTITY_ID");
+		String evaluationId = getProperty("EVALUATION_ID"); 
+		mailClient.processNewMessages(new SubmissionMessageHandler(synapseClient, messageParentId, evaluationId));
 	}
 
 	// ACT members may submit tokens to the Evaluation queue.  In that case
@@ -271,7 +273,9 @@ public class NRGRSynapseGlue {
 	
 	// Check for incoming email and if there is a valid attachment then approve them
 	public void approveApplicants() throws Exception {
-		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions();
+		String evaluationId = getProperty("EVALUATION_ID");
+
+		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
 		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions);
 		
 		// notify message sender about any bad messages (missing tokens, etc.)
@@ -305,7 +309,7 @@ public class NRGRSynapseGlue {
 		}
 		
 		// update submission statuses
-		evaluationUtil.updateSubmissionStatusBatch(sprs.getProcessedSubmissions());
+		evaluationUtil.updateSubmissionStatusBatch(sprs.getProcessedSubmissions(), evaluationId);
 
 		System.out.println("Retrieved "+sprs.getProcessedSubmissions().size()+
 				" submissions for approval and accepted "+sprs.getValidTokens()+" users.");
@@ -384,11 +388,4 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-	private static SynapseClient createSynapseClient() {
-		SynapseClientImpl scIntern = new SynapseClientImpl();
-		scIntern.setAuthEndpoint("https://repo-prod.prod.sagebase.org/auth/v1");
-		scIntern.setRepositoryEndpoint("https://repo-prod.prod.sagebase.org/repo/v1");
-		scIntern.setFileEndpoint("https://repo-prod.prod.sagebase.org/file/v1");
-		return SynapseProfileProxy.createProfileProxy(scIntern);
-	}
 }

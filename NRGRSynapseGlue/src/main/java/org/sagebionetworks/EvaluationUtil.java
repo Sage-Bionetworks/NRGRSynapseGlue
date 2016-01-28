@@ -38,9 +38,8 @@ public class EvaluationUtil {
 
 	private static final int BATCH_UPLOAD_RETRY_COUNT = 3;
 
-	public List<SubmissionBundle> getReceivedSubmissions() throws SynapseException {
+	public List<SubmissionBundle> getReceivedSubmissions(String evaluationId) throws SynapseException {
 		long total = Integer.MAX_VALUE;
-		String evaluationId = getProperty("EVALUATION_ID");
 		List<SubmissionBundle> result = new ArrayList<SubmissionBundle>();
 		for (int offset=0; offset<total; offset+=PAGE_SIZE) {
 			// get the newly RECEIVED Submissions
@@ -76,8 +75,7 @@ public class EvaluationUtil {
 		stringAnnos.add(sa);
 	}
 
-	public void updateSubmissionStatusBatch(List<SubmissionStatus> statusesToUpdate) throws SynapseException {
-		String evaluationId = getProperty("EVALUATION_ID");
+	public void updateSubmissionStatusBatch(List<SubmissionStatus> statusesToUpdate, String evaluationId) throws SynapseException {
 		// now we have a batch of statuses to update
 		for (int retry=0; retry<BATCH_UPLOAD_RETRY_COUNT; retry++) {
 			try {
@@ -97,7 +95,6 @@ public class EvaluationUtil {
 					BatchUploadResponse response = 
 							synapseClient.updateSubmissionStatusBatch(evaluationId, updateBatch);
 					batchToken = response.getNextUploadToken();
-					System.out.println("Successfully updated "+batch.size()+" submissions.");
 				}
 				break; // success!
 			} catch (SynapseConflictingUpdateException e) {
