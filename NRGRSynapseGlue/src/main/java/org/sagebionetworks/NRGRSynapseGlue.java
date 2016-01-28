@@ -1,16 +1,12 @@
 package org.sagebionetworks;
 
-import static org.sagebionetworks.TableUtil.APPROVED;
-import static org.sagebionetworks.TableUtil.APPROVED_OR_REJECTED_DATE;
 import static org.sagebionetworks.TableUtil.FIRST_NAME;
 import static org.sagebionetworks.TableUtil.LAST_NAME;
 import static org.sagebionetworks.TableUtil.MEMBERSHIP_REQUEST_EXPIRATION_DATE;
-import static org.sagebionetworks.TableUtil.REASON_REJECTED;
 import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOOUT;
 import static org.sagebionetworks.TableUtil.TOKEN_SENT_DATE;
 import static org.sagebionetworks.TableUtil.USER_ID;
 import static org.sagebionetworks.TableUtil.USER_NAME;
-import static org.sagebionetworks.TableUtil.getColumnIndexForName;
 import static org.sagebionetworks.Util.getProperty;
 
 import java.io.File;
@@ -23,7 +19,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,26 +26,23 @@ import java.util.Set;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.SynapseClientImpl;
 import org.sagebionetworks.client.SynapseProfileProxy;
-import org.sagebionetworks.client.exceptions.SynapseConflictingUpdateException;
 import org.sagebionetworks.client.exceptions.SynapseException;
-import org.sagebionetworks.evaluation.model.BatchUploadResponse;
 import org.sagebionetworks.evaluation.model.Submission;
 import org.sagebionetworks.evaluation.model.SubmissionBundle;
 import org.sagebionetworks.evaluation.model.SubmissionStatus;
-import org.sagebionetworks.evaluation.model.SubmissionStatusBatch;
 import org.sagebionetworks.evaluation.model.SubmissionStatusEnum;
 import org.sagebionetworks.reflection.model.PaginatedResults;
 import org.sagebionetworks.repo.model.ACTAccessApproval;
@@ -58,12 +50,9 @@ import org.sagebionetworks.repo.model.ACTApprovalStatus;
 import org.sagebionetworks.repo.model.MembershipRequest;
 import org.sagebionetworks.repo.model.TeamMembershipStatus;
 import org.sagebionetworks.repo.model.UserProfile;
-import org.sagebionetworks.repo.model.annotation.Annotations;
-import org.sagebionetworks.repo.model.annotation.StringAnnotation;
 import org.sagebionetworks.repo.model.message.MessageToUser;
 import org.sagebionetworks.repo.model.table.Row;
 import org.sagebionetworks.repo.model.table.RowSet;
-import org.sagebionetworks.repo.model.table.SelectColumn;
 
 /*
  * This application is meant to help Synapse unlock data access based on approval in
@@ -82,17 +71,12 @@ import org.sagebionetworks.repo.model.table.SelectColumn;
  */
 public class NRGRSynapseGlue {
 
-	private static int BATCH_SIZE = 50;
-
-	private static final String REJECTION_REASON_ANNOTATION_LABEL = "rejectionReason";
-
-	private static final int BATCH_UPLOAD_RETRY_COUNT = 3;
-
 	private static final String SYNAPSE_ACCESS_AND_COMPLIANCE_TEAM_ID = "464532";
 
 	private SynapseClient synapseClient;
 	private MessageUtil messageUtil;
 	private TableUtil tableUtil;
+	private EvaluationUtil evaluationUtil;
 
 	/*
 	 * Parameters:
@@ -108,6 +92,7 @@ public class NRGRSynapseGlue {
 		synapseClient.login(adminUserName, adminPassword);
 		messageUtil = new MessageUtil(synapseClient);
 		tableUtil = new TableUtil(synapseClient);
+		evaluationUtil = new EvaluationUtil(synapseClient);
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -207,7 +192,7 @@ public class NRGRSynapseGlue {
 	}
 
 	// ACT members may submit tokens to the Evaluation queue.  In that case
-	// we do not have to the ORIGINATING_IP_SUBNET
+	// we do not have to check the ORIGINATING_IP_SUBNET
 	private boolean canBypassMessageValidation(String submissionCreatorId, String myOwnId) throws SynapseException {
 		// don't do this override if the creator is the cron job service account
 		if (submissionCreatorId.equals(myOwnId)) return false;
@@ -216,156 +201,117 @@ public class NRGRSynapseGlue {
 						SYNAPSE_ACCESS_AND_COMPLIANCE_TEAM_ID, submissionCreatorId);
 		return tms.getIsMember();
 	}
+	
+	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess) {
+		String myOwnSnapseId = null;
+		SubmissionProcessingResult result = new SubmissionProcessingResult();
+		for (SubmissionBundle bundle : submissionsToProcess) {
+			Submission sub = bundle.getSubmission();
+			SubmissionStatus status = bundle.getSubmissionStatus();
+			status.setStatus(SubmissionStatusEnum.CLOSED); // this is the default, might be overridden
+			result.addProcessedSubmission(status);
 
+			InputStream fileIs = null;
+			MimeMessage message = null;
+			try {
+				File temp = evaluationUtil.downloadSubmissionFile(sub);
+				temp.deleteOnExit();
+				message = MessageUtil.readMessageFromFile(temp);
+				if (myOwnSnapseId==null) {
+					myOwnSnapseId = synapseClient.getMyProfile().getOwnerId();
+				}
+				if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
+					String originatingIpSubnet = getProperty("ORIGINATING_IP_SUBNET", /*nullIsOK*/true);
+					if (originatingIpSubnet!=null && originatingIpSubnet.length()>0 && 
+							!OriginValidator.isOriginatingIPInSubnet(message, originatingIpSubnet)) {
+						String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
+						status.setStatus(SubmissionStatusEnum.REJECTED);
+						EvaluationUtil.addRejectionReasonToStatus(status, reason);
+						result.addMessageToSender(new MimeMessageAndReason(message, reason));
+						continue; // done processing this bundle
+					}						
+				}
+				
+				fileIs = new FileInputStream(temp);
+				Set<TokenAnalysisResult> tokenAnalysisResults = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs));
+				int validTokensInMessage = 0;
+				for (TokenAnalysisResult tar : tokenAnalysisResults) {
+					if(tar.isValid()) {
+						validTokensInMessage++;
+						result.addValidToken(tar.getTokenContent());
+					}
+				}
+				if (validTokensInMessage==0) {
+					throw new Exception("No valid token found in file.");
+				}
+				if (validTokensInMessage < tokenAnalysisResults.size()) {
+					String reason = ""+validTokensInMessage+" valid tokens and "+
+							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid tokens "+
+							" were found in this message.";
+					result.addMessageToSender(new MimeMessageAndReason(message, reason));
+				}
+			} catch (Exception e) {
+				status.setStatus(SubmissionStatusEnum.REJECTED);
+				EvaluationUtil.addRejectionReasonToStatus(status, e.getMessage());
+				if (message!=null) result.addMessageToSender(new MimeMessageAndReason(message, e.getMessage()));
+			} finally {
+				if (fileIs!=null) {
+					try {
+						fileIs.close();
+					} catch (IOException e) {
+						// continue
+					}
+				}
+			}
+		} // end for SubmissionBundle bundle ...
+		
+		return result;
+	}
+	
 	// Check for incoming email and if there is a valid attachment then approve them
 	public void approveApplicants() throws Exception {
-		String tableId = getProperty("TABLE_ID");
-		Map<String, DatasetSettings> datasetSettings = Util.getDatasetSettings();
-		String myOwnSnapseId = null;
-		long total = Integer.MAX_VALUE;
-		String evaluationId = getProperty("EVALUATION_ID");
-		List<TokenContent> acceptedTokens = new ArrayList<TokenContent>();
-		List<SubmissionStatus> statusesToUpdate = new ArrayList<SubmissionStatus>();
-		Map<Long,String> rejected = new HashMap<Long,String>(); // key is userId, value is 'reason' message
-		int rejectedCount = 0;
-		List<MimeMessageAndReason> rejectedMessages = new ArrayList<MimeMessageAndReason>();
-		for (int offset=0; offset<total; offset+=PAGE_SIZE) {
-			// get the newly RECEIVED Submissions
-			PaginatedResults<SubmissionBundle> submissionPGs = 
-					synapseClient.getAllSubmissionBundlesByStatus(evaluationId, SubmissionStatusEnum.RECEIVED, offset, PAGE_SIZE);
-			total = (int)submissionPGs.getTotalNumberOfResults();
-			List<SubmissionBundle> page = submissionPGs.getResults();
-			for (int i=0; i<page.size(); i++) {
-				SubmissionBundle bundle = page.get(i);
-				Submission sub = bundle.getSubmission();
-				File temp = downloadSubmissionFile(sub);
-				temp.deleteOnExit();
+		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions();
+		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions);
+		
+		// notify message sender about any bad messages (missing tokens, etc.)
+		sendRejectionsToMailSender(sprs.getMessagesToSender());
+		
+		// find those not already approved
+		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
+		
+		// create the AccessApprovals in Synapse
+		createAccessApprovals(usersToApprove.getTokens());
+		
+		// accept team membership requests
+		acceptTeamMembershipRequests(usersToApprove.getTokens());
 
-				SubmissionStatus status = bundle.getSubmissionStatus();
-				SubmissionStatusEnum newStatus = null;
-				InputStream fileIs = null;
-				if (myOwnSnapseId==null) myOwnSnapseId = synapseClient.getMyProfile().getOwnerId();
-				MimeMessage message = MessageUtil.readMessageFromFile(temp);
-				try {
-					if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
-						String originatingIpSubnet = getProperty("ORIGINATING_IP_SUBNET", /*nullIsOK*/true);
-						if (originatingIpSubnet!=null && originatingIpSubnet.length()>0 && 
-								!OriginValidator.isOriginatingIPInSubnet(message, originatingIpSubnet)) {
-							throw new Exception("Message lacks X-Originating-IP header or is outside of the allowed subnet.");
-						}						
-					}
-
-					fileIs = new FileInputStream(temp);
-					Set<TokenAnalysisResult> tokenAnalysisResults = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs));
-					int validTokensInMessage = 0;
-					for (TokenAnalysisResult tar : tokenAnalysisResults) {
-						if(tar.isValid()) {
-							if (tar.getUserId()==null) {
-								// should never happen.  Will be caught and handled below
-								throw new IllegalStateException("Missing userId");
-							}
-							acceptedTokens.add(tar.getTokenContent());
-							validTokensInMessage++;
-						} else {
-							if (tar.getUserId()!=null) {
-								rejected.put(tar.getUserId(), tar.getReason());
-							}
-						}
-					}
-					if (validTokensInMessage>0) {
-						newStatus = SubmissionStatusEnum.CLOSED;
-					} else {
-						throw new Exception("No valid token found in file.");
-					}
-				} catch (Exception e) {
-					newStatus = SubmissionStatusEnum.REJECTED;
-					rejectedCount++;
-					addRejectionReasonToStatus(status, e.getMessage());
-					rejectedMessages.add(new MimeMessageAndReason(message, e.getMessage()));
-				} finally {
-					if (fileIs!=null) fileIs.close();
-				}
-				status.setStatus(newStatus);
-				statusesToUpdate.add(status);
+		// send the notifications
+		Map<String,DatasetSettings> settings = Util.getDatasetSettings();
+		sendApproveNotifications(usersToApprove.getTokens(), settings);
+		
+		// update the approval records in the Table
+		RowSet rowSet = usersToApprove.getRowSet();
+		if (!rowSet.getRows().isEmpty()) {
+			int approvedOrRejectedDateIndex = 
+					TableUtil.getColumnIndexForName(
+							rowSet.getHeaders(), TableUtil.APPROVED_ON);
+			Long now = System.currentTimeMillis();
+			for (Row row : rowSet.getRows()) {
+				row.getValues().set(approvedOrRejectedDateIndex, now.toString());
 			}
+			String tableId = getProperty("TABLE_ID");
+			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, tableId);
 		}
-		// Now we've gone through all the new submissions and know what users we want to accept and reject
-		// TODO userId is no longer a key.  the key is <userId, teamId, mrExpiration>
-		Map<Long,TokenContent> acceptedUsers = new HashMap<Long,TokenContent>();
-		for (TokenContent tc : acceptedTokens) {
-			acceptedUsers.put(tc.getUserId(), tc);
-		}
+		
+		// update submission statuses
+		evaluationUtil.updateSubmissionStatusBatch(sprs.getProcessedSubmissions());
 
-		// filter the accepted list, removing users who have already been approved
-		List<String> acceptedAndNotYetApprovedUserIds = new ArrayList<String>();
-		List<Row> acceptedAndNotYetApprovedRows = new ArrayList<Row>();
-		List<TokenContent> acceptedAndNotYetApprovedTC = new ArrayList<TokenContent>();
-		if (!acceptedUsers.isEmpty()) {
-			Pair<List<SelectColumn>, List<Row>> result = selectUnexpiredTokenForUsersAndTeam(acceptedUsers.keySet());	
-			Integer userIdIndex = null;
-			Integer approvedOrRejectedDateIndex = null;
-			Integer approvedIndex = null;
-			Integer reasonRejectedIndex = null;
-			if (!result.getSecond().isEmpty()) {
-				userIdIndex = getColumnIndexForName(result.getFirst(), USER_ID);
-				approvedOrRejectedDateIndex = getColumnIndexForName(result.getFirst(), APPROVED_OR_REJECTED_DATE);
-				approvedIndex = getColumnIndexForName(result.getFirst(), APPROVED);
-				reasonRejectedIndex = getColumnIndexForName(result.getFirst(), REASON_REJECTED);
-				for (Row row : result.getSecond()) {
-					String userId = row.getValues().get(userIdIndex);
-					String approvedString = row.getValues().get(approvedIndex);
-					// TODO this logic will 'approve' all rows for an unapproved user, not just the
-					// row for the matching token (if the user has multiple rows)
-					if (approvedString==null || Boolean.valueOf(approvedString)==false) {
-						acceptedAndNotYetApprovedUserIds.add(userId);
-						acceptedAndNotYetApprovedTC.add(acceptedUsers.get(Long.parseLong(userId)));
-						acceptedAndNotYetApprovedRows.add(row);
-					}
-				}
-			}
-			// if an ID is in acceptedUserIds but not in the Table, then something weird has happened
-			// TODO will encounter this condition when there are multiple tokens / user
-			if (acceptedUsers.size()!=result.getSecond().size()) {
-				System.out.println("Warning:  Found "+acceptedUsers.size()+
-						" valid token(s), but the number of Table rows matching the userIds is "+
-						result.getSecond().size());
-			}
-
-			createAccessApprovals(acceptedAndNotYetApprovedTC);
-			acceptTeamMembershipRequests(acceptedAndNotYetApprovedUserIds);
-			long now = System.currentTimeMillis();
-			for (Row row : acceptedAndNotYetApprovedRows) {
-				row.getValues().set(approvedOrRejectedDateIndex, ""+now);
-				row.getValues().set(approvedIndex, Boolean.TRUE.toString());
-				row.getValues().set(reasonRejectedIndex, null);
-			}
-
-			// now update the table to show that approval has been granted
-			{
-				RowSet rowsToUpdate = new RowSet();
-				rowsToUpdate.setTableId(tableId);
-				rowsToUpdate.setHeaders(result.getFirst());
-				rowsToUpdate.setRows(new ArrayList<Row>(acceptedAndNotYetApprovedRows));
-				synapseClient.appendRowsToTable(rowsToUpdate, TABLE_UPDATE_TIMEOOUT, tableId);
-			}
-		}
-		// filter list down to just the users that were not previously approved
-		// (That is, if you're already approved then a bad submission will not revoke
-		// your access.)
-		Map<Long,String> confirmedRejected = updateTableForRejected(rejected, tableId);
-
-		updateSubmissionStatusBatch(evaluationId, statusesToUpdate);
-		sendApproveNotifications(acceptedAndNotYetApprovedUserIds);
-		sendRejectionNotifications(confirmedRejected);
-		sendRejectionsToMailSender(rejectedMessages);
-
-		System.out.println("Retrieved "+total+
-				" submissions for approval and rejected "+rejectedCount+". Accepted "+acceptedUsers.size()+
-				" users and rejected "+confirmedRejected.size()+".");
+		System.out.println("Retrieved "+sprs.getProcessedSubmissions().size()+
+				" submissions for approval and accepted "+sprs.getValidTokens()+" users.");
 
 	}
 	
-	private static final String REJECTION_SUBJECT = "rejected token email";
+	private static final String REJECTION_SUBJECT = "error in token email";
 	
 	/*
 	 * For any rejected emails, send an email *back* to the sender containing the reason.
@@ -377,15 +323,18 @@ public class NRGRSynapseGlue {
 			Address notificationFrom = new InternetAddress("noreply@sagebase.org");
 			for (MimeMessageAndReason mmr : mimeMessageAndReasons) {
 				MimeMessage mimeMessage = mmr.getMimeMessage();
-				String reason = mmr.getReason();
 				MimeMultipart content = new MimeMultipart();
-				// add a messge to the sender, including the reason for the rejection
-				content.addBodyPart(part);
+				// TODO add a message to the sender, including the reason for the rejection
+				MimeBodyPart reason = new MimeBodyPart();
+				reason.setContent(mmr.getReason(), ContentType.TEXT_PLAIN.getMimeType());
+				content.addBodyPart(reason);
 				// add another part for the original message
-				content.addBodyPart(mimeMessage.getContent());
+				content.addBodyPart((BodyPart)mimeMessage.getContent());
 				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
 			}
 		} catch (MessagingException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -403,178 +352,36 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-	private void acceptTeamMembershipRequests(Collection<String> userIds) throws SynapseException {
-		long total = Integer.MAX_VALUE;
-		String teamId = getProperty("APPLICATION_TEAM_ID");
-		for (int offset=0; offset<total; offset+=PAGE_SIZE) {
-			PaginatedResults<MembershipRequest> pgs = 
-					synapseClient.getOpenMembershipRequests(teamId, 
-							null, PAGE_SIZE, offset);
-			total = pgs.getTotalNumberOfResults();
-			for (MembershipRequest mr : pgs.getResults()) {
-				if(userIds.contains(mr.getUserId())) {
-					try {
-						synapseClient.addTeamMember(teamId, mr.getUserId(), 
-							"https://www.synapse.org/#!Team:", null);
-					} catch (SynapseException e) {
-						throw new RuntimeException("Team Id: "+teamId+" userId: "+mr.getUserId(), e);
-					}
-				}
-			}
-		}
-	}
-
-	private static void addRejectionReasonToStatus(SubmissionStatus status, String reason) {
-		Annotations a = status.getAnnotations();
-		if (a==null) {
-			a = new Annotations();
-			status.setAnnotations(a);
-		}
-		List<StringAnnotation> stringAnnos = a.getStringAnnos();
-		if (stringAnnos==null) {
-			stringAnnos = new ArrayList<StringAnnotation>();
-			a.setStringAnnos(stringAnnos);
-		}
-		for (StringAnnotation sa : stringAnnos) {
-			if (sa.getKey().equals(REJECTION_REASON_ANNOTATION_LABEL)) {
-				sa.setValue(reason);
-				return;
-			}
-		}
-		StringAnnotation sa = new StringAnnotation();
-		sa.setIsPrivate(false);
-		sa.setKey(REJECTION_REASON_ANNOTATION_LABEL);
-		sa.setValue(reason);
-		stringAnnos.add(sa);
-	}
-
-	private Map<Long,String> updateTableForRejected(Map<Long,String> rejected, String tableId) throws SynapseException, InterruptedException {
-		Map<Long,String> confirmedRejected = new HashMap<Long,String>();
-		if (rejected.isEmpty()) return confirmedRejected;
-		Pair<List<SelectColumn>, List<Row>> result = selectUnexpiredTokenForUsersAndTeam(rejected.keySet());	
-		if (result.getSecond().isEmpty()) return confirmedRejected;
-		int userIdIndex = getColumnIndexForName(result.getFirst(), USER_ID);
-		int approvedOrRejectedDateIndex = getColumnIndexForName(result.getFirst(), APPROVED_OR_REJECTED_DATE);
-		int approvedIndex = getColumnIndexForName(result.getFirst(), APPROVED);
-		int reasonIndex =  getColumnIndexForName(result.getFirst(), REASON_REJECTED);
-		long now = System.currentTimeMillis();
-		for (Row row : result.getSecond()) {
-			List<String> values = row.getValues();
-			String approvedString = values.get(approvedIndex);
-			if (approvedString!=null && Boolean.valueOf(approvedString)) {
-				continue; // if you're already approved, then a bad submission won't cause you to be rejected
-			}
-			Long userId = Long.parseLong(values.get(userIdIndex));
-			if (rejected.keySet().contains(userId)) {
-				values.set(approvedOrRejectedDateIndex, ""+now);
-				String reason = rejected.get(userId);
-				values.set(reasonIndex, reason);
-				confirmedRejected.put(userId, reason);
-			}
-		}
-		RowSet rowsToUpdate = new RowSet();
-		rowsToUpdate.setTableId(tableId);
-		rowsToUpdate.setHeaders(result.getFirst());
-		rowsToUpdate.setRows(new ArrayList<Row>(result.getSecond()));
-		synapseClient.appendRowsToTable(rowsToUpdate, TABLE_UPDATE_TIMEOOUT, tableId);
-		return confirmedRejected;
-	}
-
-	public void sendApproveNotifications(Collection<String> userIds) throws IOException {
-		for (String userId : userIds) {
+	private void acceptTeamMembershipRequests(Collection<TokenContent> usersToApprove) throws SynapseException {
+		for (TokenContent tc : usersToApprove) {
+			String teamId = tc.getApplicationTeamId();
+			long userId = tc.getUserId();
 			try {
-				UserProfile userProfile = synapseClient.getUserProfile(userId);
+				synapseClient.addTeamMember(teamId, ""+userId, 
+					"https://www.synapse.org/#!Team:", null);
+			} catch (SynapseException e) {
+				throw new RuntimeException("Team Id: "+teamId+" userId: "+userId, e);
+			}
+		}
+	}
+
+	public void sendApproveNotifications(Collection<TokenContent> usersToApprove, Map<String,DatasetSettings> settingsMap) throws IOException {
+		for (TokenContent tc : usersToApprove) {
+			try {
+				UserProfile userProfile = synapseClient.getUserProfile(""+tc.getUserId());
+				DatasetSettings settings = settingsMap.get(tc.getApplicationTeamId());
 				MessageToUser message = new MessageToUser();
-				message.setSubject(getProperty("DATA_DESCRIPTOR")+" Data Access Approval");
-				message.setRecipients(Collections.singleton(userId));
+				message.setSubject(settings.getDataDescriptor()+" Data Access Approval");
+				message.setRecipients(Collections.singleton(""+tc.getUserId()));
 				synapseClient.sendStringMessage(message, 
-						messageUtil.createGenericMessage(userProfile, getProperty("APPROVE_EMAIL_SYNAPSE_ID")));
+						messageUtil.createGenericMessage(userProfile, 
+								settings.getApprovalEmailSynapseId()));
 			} catch (SynapseException e) {
 				// if the message fails, just log it and go on to the next one
 				e.printStackTrace();
 			}
 		}
 	}
-
-	private void sendRejectionNotifications(Map<Long,String> rejected) {
-		for (Long userId : rejected.keySet()) {
-			String reason = rejected.get(userId);
-			try {
-				UserProfile userProfile = synapseClient.getUserProfile(""+userId);
-				MessageToUser message = new MessageToUser();
-				message.setSubject(getProperty("DATA_DESCRIPTOR")+" Data Access Declined");
-				message.setRecipients(Collections.singleton(""+userId));
-				StringBuilder messageBody = new StringBuilder();
-				messageBody.append(messageUtil.salutation(userProfile));
-				messageBody.append("\nYour request for access to the "+getProperty("DATA_DESCRIPTOR")+" data has been declined.\n");
-				if (reason!=null) {
-					messageBody.append("\n\tReason: ");
-					messageBody.append(reason);
-					messageBody.append("\n");
-				}
-				messageBody.append("\n\nSincerely,\n\nSynapse Administration");
-				messageUtil.sendMessage(message, messageBody.toString());
-			} catch (SynapseException e) {
-				// if the message fails, just log it and go on to the next one
-				e.printStackTrace();
-			}
-		}
-	}
-
-
-	private void updateSubmissionStatusBatch(String evaluationId, List<SubmissionStatus> statusesToUpdate) throws SynapseException {
-		// now we have a batch of statuses to update
-		for (int retry=0; retry<BATCH_UPLOAD_RETRY_COUNT; retry++) {
-			try {
-				String batchToken = null;
-				for (int offset=0; offset<statusesToUpdate.size(); offset+=BATCH_SIZE) {
-					SubmissionStatusBatch updateBatch = new SubmissionStatusBatch();
-					List<SubmissionStatus> batch = new ArrayList<SubmissionStatus>();
-					for (int i=0; i<BATCH_SIZE && offset+i<statusesToUpdate.size(); i++) {
-						batch.add(statusesToUpdate.get(offset+i));
-					}
-					updateBatch.setStatuses(batch);
-					boolean isFirstBatch = (offset==0);
-					updateBatch.setIsFirstBatch(isFirstBatch);
-					boolean isLastBatch = (offset+BATCH_SIZE)>=statusesToUpdate.size();
-					updateBatch.setIsLastBatch(isLastBatch);
-					updateBatch.setBatchToken(batchToken);
-					BatchUploadResponse response = 
-							synapseClient.updateSubmissionStatusBatch(evaluationId, updateBatch);
-					batchToken = response.getNextUploadToken();
-					System.out.println("Successfully updated "+batch.size()+" submissions.");
-				}
-				break; // success!
-			} catch (SynapseConflictingUpdateException e) {
-				// we collided with someone else access the Evaluation.  Will retry!
-				System.out.println("WILL RETRY: "+e.getMessage());
-			}
-		}
-	}
-
-	private File downloadSubmissionFile(Submission submission) throws SynapseException, IOException {
-		String fileHandleId = getFileHandleIdFromEntityBundle(submission.getEntityBundleJSON());
-		File temp = File.createTempFile("temp", null);
-		synapseClient.downloadFromSubmission(submission.getId(), fileHandleId, temp);
-		return temp;
-	}
-
-	private static String getFileHandleIdFromEntityBundle(String s) {
-		try {
-			JSONObject bundle = new JSONObject(s);
-			JSONArray fileHandles = (JSONArray)bundle.get("fileHandles");
-			for (int i=0; i<fileHandles.length(); i++) {
-				JSONObject fileHandle = fileHandles.getJSONObject(i);
-				if (!fileHandle.get("concreteType").equals("org.sagebionetworks.repo.model.file.PreviewFileHandle")) {
-					return (String)fileHandle.get("id");
-				}
-			}
-			throw new IllegalArgumentException("File has no file handle ID");
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 
 	private static SynapseClient createSynapseClient() {
 		SynapseClientImpl scIntern = new SynapseClientImpl();

@@ -30,7 +30,10 @@ public class TokenUtilTest {
 	@Test
 	public void testCreateToken() throws Exception {
 		Long userId = new Long(273995L);
-		String token = TokenUtil.createToken(""+userId);
+		long now = System.currentTimeMillis();
+		long mrExpiration = now - 1000L; // just make it different
+		DatasetSettings settings = new DatasetSettings();
+		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes());
 		assertEquals(1, tars.size());
 		TokenAnalysisResult tar = tars.iterator().next();
@@ -39,6 +42,7 @@ public class TokenUtilTest {
 		assertNull(tar.getReason());
 		TokenContent tc = tar.getTokenContent();
 		assertEquals(userId.longValue(), tc.getUserId());
+		// TODO add new assertions
 	}
 
 	@Test
@@ -46,7 +50,7 @@ public class TokenUtilTest {
 		Long userId = new Long(273995L);
 		Long timestamp = System.currentTimeMillis();
 		List<Long> arIds = Arrays.asList(new Long[]{111111L, 222222L, 333333L});
-		String unsignedToken = TokenUtil.createUnsignedToken(""+userId, arIds, ""+timestamp);
+		String unsignedToken = TokenUtil.createV1UnsignedToken(""+userId, arIds, ""+timestamp);
 		String signedToken = unsignedToken+TokenUtil.hmac(unsignedToken)+"|";
 		String fileContent= TokenUtil.TOKEN_TERMINATOR+"\\\n"+
 				signedToken+"\n"+TokenUtil.TOKEN_TERMINATOR+"}";
@@ -71,7 +75,7 @@ public class TokenUtilTest {
 		Long userId = new Long(273995L);
 		Long timestamp = System.currentTimeMillis();
 		List<Long> arIds = Arrays.asList(new Long[]{111111L, 222222L, 333333L});
-		String unsignedToken = TokenUtil.createUnsignedToken(""+userId, arIds, ""+timestamp);
+		String unsignedToken = TokenUtil.createV1UnsignedToken(""+userId, arIds, ""+timestamp);
 		String signedToken = unsignedToken+TokenUtil.hmac(unsignedToken)+"|";
 		String fileContent= TokenUtil.OLD_TOKEN_TERMINATOR+"\\\n"+
 				signedToken+"\n"+TokenUtil.OLD_TOKEN_TERMINATOR+"}";

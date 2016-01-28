@@ -48,10 +48,18 @@ public class Util {
 		return null;
 	}	
 
+	/*
+	 * return a map whose key is signup team ID and value is the collection of settings for that team
+	 */
 	public static Map<String,DatasetSettings> getDatasetSettings() {
 		return parseDatasetSetting(getProperty("SETTINGS"));
 	}
-		public static Map<String,DatasetSettings> parseDatasetSetting(String s) {
+		
+	
+	/*
+	 * return a map whose key is signup team ID and value is the collection of settings for that team
+	 */
+	public static Map<String,DatasetSettings> parseDatasetSetting(String s) {
 		JSONArray a = (JSONArray)JSONValue.parse(s);
 		Map<String,DatasetSettings> result = new HashMap<String,DatasetSettings>();
 		for (Object elem : a) {
