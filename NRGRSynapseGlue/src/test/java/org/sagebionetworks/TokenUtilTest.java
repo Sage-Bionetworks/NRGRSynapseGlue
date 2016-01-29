@@ -41,13 +41,43 @@ public class TokenUtilTest {
     }
 
     @Test
-	public void testCreateToken() throws Exception {
+	public void testCreateAndParseV1Token() throws Exception {
+		Long userId = new Long(273995L);
+		long now = System.currentTimeMillis();
+		List<Long> arList = Collections.singletonList(111L);		
+		String unsignedToken = 
+				TokenUtil.createV1UnsignedToken(
+						""+userId, 
+						arList,
+						""+now);
+		String token = "\n"+TokenUtil.TOKEN_TERMINATOR+"\n"+
+				unsignedToken+TokenUtil.hmac(unsignedToken)+TokenUtil.PART_SEPARATOR+
+				"\n"+TokenUtil.TOKEN_TERMINATOR+"\n";
+		
+		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
+		assertEquals(1, tars.size());
+		TokenAnalysisResult tar = tars.iterator().next();
+		assertTrue(tar.isValid());
+		assertEquals(userId, tar.getUserId());
+		assertNull(tar.getReason());
+		TokenContent tc = tar.getTokenContent();
+		assertEquals(userId.longValue(), tc.getUserId());
+		assertEquals(arList, tc.getAccessRequirementIds());
+		assertEquals(null, tc.getApplicationTeamId());
+		assertEquals(null, tc.getMembershipRequestExpiration());
+		assertEquals(new Date(now), tc.getTimestamp());
+		assertEquals(null, tc.getTokenLabel());
+	}
+
+    @Test
+	public void testCreateAndParseV2Token() throws Exception {
 		Long userId = new Long(273995L);
 		long now = System.currentTimeMillis();
 		long mrExpiration = now - 1000L; // just make it different
 		DatasetSettings settings = new DatasetSettings();
 		settings.setTokenLabel("PsychENCODE");
-		settings.setAccessRequirementIds(Collections.singletonList(111L));
+		List<Long> arList = Collections.singletonList(111L);
+		settings.setAccessRequirementIds(arList);
 		settings.setApplicationTeamId("12345");
 		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
@@ -58,7 +88,11 @@ public class TokenUtilTest {
 		assertNull(tar.getReason());
 		TokenContent tc = tar.getTokenContent();
 		assertEquals(userId.longValue(), tc.getUserId());
-		// TODO add new assertions
+		assertEquals(arList, tc.getAccessRequirementIds());
+		assertEquals("12345", tc.getApplicationTeamId());
+		assertEquals(new Date(mrExpiration), tc.getMembershipRequestExpiration());
+		assertEquals(new Date(now), tc.getTimestamp());
+		assertEquals("PsychENCODE", tc.getTokenLabel());
 	}
 
 	@Test

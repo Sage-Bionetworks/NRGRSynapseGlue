@@ -1,5 +1,6 @@
 package org.sagebionetworks;
 
+import static org.sagebionetworks.TableUtil.APPLICATION_TEAM_ID;
 import static org.sagebionetworks.TableUtil.FIRST_NAME;
 import static org.sagebionetworks.TableUtil.LAST_NAME;
 import static org.sagebionetworks.TableUtil.MEMBERSHIP_REQUEST_EXPIRATION_DATE;
@@ -37,8 +38,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
-import org.sagebionetworks.client.SynapseClientImpl;
-import org.sagebionetworks.client.SynapseProfileProxy;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.evaluation.model.Submission;
 import org.sagebionetworks.evaluation.model.SubmissionBundle;
@@ -94,6 +93,20 @@ public class NRGRSynapseGlue {
 		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
 	}
+	
+	/*
+	 * for testing
+	 */
+	public NRGRSynapseGlue(
+			SynapseClient synapseClient, 
+			MessageUtil messageUtil, 
+			TableUtil tableUtil, 
+			EvaluationUtil evaluationUtil) {
+		this.synapseClient=synapseClient;
+		this.messageUtil=messageUtil;
+		this.tableUtil=tableUtil;
+		this.evaluationUtil=evaluationUtil;
+	}
 
 	public static void main(String[] args) throws Exception {
 		NRGRSynapseGlue sg = new NRGRSynapseGlue();
@@ -116,7 +129,7 @@ public class NRGRSynapseGlue {
 		}
 	}
 
-	private static int PAGE_SIZE = 50;
+	private static long PAGE_SIZE = 50L;
 
 	public void processNewApplicants() throws Exception {
 		List<Row> applicantsProcessed = new ArrayList<Row>();
@@ -124,7 +137,7 @@ public class NRGRSynapseGlue {
 		for (DatasetSettings datasetSettings : Util.getDatasetSettings().values()) {
 			// process each data set
 			long total = Integer.MAX_VALUE;
-			for (int offset=0; offset<total; offset+=PAGE_SIZE) {
+			for (long offset=0; offset<total; offset+=PAGE_SIZE) {
 				PaginatedResults<MembershipRequest> pgs = 
 						synapseClient.getOpenMembershipRequests(datasetSettings.getApplicationTeamId(), 
 								null, PAGE_SIZE, offset);
@@ -149,6 +162,7 @@ public class NRGRSynapseGlue {
 					Row applicantProcessed = new Row();
 					applicantProcessed.setValues(Arrays.asList(new String[]{
 							userId,
+							mr.getTeamId(),
 							userProfile.getUserName(),
 							userProfile.getFirstName(),
 							userProfile.getLastName(),
@@ -167,6 +181,7 @@ public class NRGRSynapseGlue {
 			rowSet.setTableId(tableId);
 			String[] columnNames = new String[]{
 					USER_ID,
+					APPLICATION_TEAM_ID,
 					USER_NAME,
 					FIRST_NAME,
 					LAST_NAME,

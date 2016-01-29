@@ -23,7 +23,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 
 public class TokenUtil {
-	private static final String PART_SEPARATOR = "|";
+	public static final String PART_SEPARATOR = "|";
 	private static final String REGEX_FOR_PART_SEPARATOR = "\\|";
 	
 	private static final String ACCESS_REQUIREMENT_ID_SEPARATOR = ",";
