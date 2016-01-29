@@ -284,6 +284,10 @@ public class NRGRSynapseGlue {
 		// find those not already approved
 		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
 		
+		for (TokenContent tc : usersToApprove.getTokens()) {
+			if (tc.getApplicationTeamId()==null) tc.setApplicationTeamId(getProperty("ORIGINAL_APPLICATION_TEAM_ID"));
+		}
+		
 		// create the AccessApprovals in Synapse
 		createAccessApprovals(usersToApprove.getTokens());
 		

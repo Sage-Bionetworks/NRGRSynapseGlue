@@ -92,6 +92,8 @@ public class TableUtil {
 	public TokenTableLookupResults getRowsForAcceptedButNotYetApprovedUserIds(Collection<TokenContent> tcs) throws SynapseException, InterruptedException {
 		TokenTableLookupResults result = new TokenTableLookupResults();
 		RowSet rowSet = new RowSet();
+		List<Row> rows = new ArrayList<Row>();
+		rowSet.setRows(rows);
 		result.setRowSet(rowSet);
 		if (tcs.isEmpty())  return result;
 		StringBuilder sb = new StringBuilder("SELECT * FROM ");
@@ -110,7 +112,6 @@ public class TableUtil {
 		int teamIdIndex = getColumnIndexForName(queryResult.getFirst(), APPLICATION_TEAM_ID);
 		int expirationIndex = getColumnIndexForName(queryResult.getFirst(), MEMBERSHIP_REQUEST_EXPIRATION_DATE);
 		
-		List<Row> rows = new ArrayList<Row>();
 		for (TokenContent tc : tcs) {
 			String userId = ""+tc.getUserId();
 			String teamId = tc.getApplicationTeamId();
@@ -142,7 +143,6 @@ public class TableUtil {
 
 		rowSet.setEtag(queryResult.getSecond().getEtag());
 		rowSet.setHeaders(queryResult.getFirst());
-		rowSet.setRows(rows);
 		rowSet.setTableId(tableId);
 		return result;
 	}
