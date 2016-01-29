@@ -199,7 +199,7 @@ public class TokenUtil {
 		return new TokenAnalysisResult(null, false, userId, reason);
 	}
 	
-	private static TokenAnalysisResult parseToken(String token, long now) {
+	public static TokenAnalysisResult parseToken(String token, long now) {
 		String[] tokenParts = token.split(REGEX_FOR_PART_SEPARATOR);
 		// handling of the token could put some garbage characters at the end of the string, 
 		// increasing the token pieces from 5 to 6

@@ -269,6 +269,7 @@ public class NRGRSynapseGlue {
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				status.setStatus(SubmissionStatusEnum.REJECTED);
 				EvaluationUtil.addRejectionReasonToStatus(status, e.getMessage());
 				if (message!=null) result.addMessageToSender(new MimeMessageAndReason(message, e.getMessage()));

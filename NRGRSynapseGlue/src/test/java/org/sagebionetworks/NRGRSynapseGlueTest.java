@@ -12,12 +12,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sagebionetworks.Util.getProperty;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,24 +145,67 @@ public class NRGRSynapseGlueTest  {
 		assertEquals(""+EXPIRES_ON, values.get(6));
 	}
 	
-	// this is covered in testApproveApplicants, below
-	// testing separately may allow exercising a wider 
-	// variety of cases
+	private static File createTempFileWithContent(String content) {
+		try {
+			File file = File.createTempFile("temp", ".txt");
+			FileOutputStream fos = new FileOutputStream(file);
+			try {
+				IOUtils.write(content, fos, "utf-8");
+				return file;
+			} finally {
+				fos.close();
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static File createMessageWithToken(String token) throws IOException {
+		String templateName = "mimeWithTokenPlaceholder.txt";
+		InputStream is = null;
+		try {
+			is = NRGRSynapseGlueTest.class.getClassLoader().getResourceAsStream(templateName);
+			String template = IOUtils.toString(is);
+			return createTempFileWithContent(template.replaceAll("###tokenGoesHere###", token));
+		} finally {
+			if (is!=null) is.close();
+		}
+	}
+	
 	@Test
-	public void testProcessReceivedSubmissions() throws Exception {
+	public void testProcessReceivedSubmissions_ValidToken() throws Exception {
 		List<SubmissionBundle> submissionsToProcess = new ArrayList<SubmissionBundle>();
 		SubmissionBundle bundle = new SubmissionBundle();
 		Submission submission = new Submission();
+		submission.setUserId("000");
 		SubmissionStatus submissionStatus = new SubmissionStatus();
 		bundle.setSubmission(submission);
 		bundle.setSubmissionStatus(submissionStatus);
 		submissionsToProcess.add(bundle);
 		
+		DatasetSettings datasetSettings = Util.getDatasetSettings().get(TEAM_ID);
+		long now = System.currentTimeMillis();
+		String token = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
+		File downloadedFile = createMessageWithToken(token);
+		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
+		
+		UserProfile userProfile = new UserProfile();
+		userProfile.setOwnerId("000");
+		when(synapseClient.getMyProfile()).thenReturn(userProfile);
+
 		// method under test
 		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess);
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
 		assertEquals(SubmissionStatusEnum.CLOSED, submissionStatus.getStatus());
+//		StringAnnotation sa = submissionStatus.getAnnotations().getStringAnnos().get(0);
+//		assertEquals("rejectionReason", sa.getKey());
+//		assertEquals("No valid token found in file.", sa.getValue());
+		assertEquals(1, spr.getValidTokens().size());
+		TokenAnalysisResult tar = TokenUtil.parseToken(token, now);
+		assertEquals(tar.getTokenContent(), spr.getValidTokens().iterator().next());
+		assertTrue(spr.getMessagesToSender().isEmpty());
+		
 	}
 	
 	@Test
