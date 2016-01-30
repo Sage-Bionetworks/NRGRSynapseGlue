@@ -37,8 +37,9 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.Transport;
 import javax.mail.URLName;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
@@ -48,6 +49,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -56,6 +58,8 @@ import org.json.simple.JSONValue;
 
 import com.sun.mail.imap.IMAPSSLStore;
 import com.sun.mail.imap.IMAPStore;
+import com.sun.mail.smtp.SMTPTransport;
+import com.sun.mail.util.BASE64EncoderStream;
 
 /*
  * This class has methods to connect to a gmail account, retrieve messages
@@ -73,26 +77,15 @@ public class IMAPClient {
 	private Session session;
 	private IMAPStore imapStore;
 	
-	/**
-	 * Check for new messages in the 'in-folder'.
-	 * Retrieve all the new messages and pass each one to the given 
-	 * 'handler' for processing.  Then move the messages to the output 
-	 * folder
-	 */
-	public void processNewMessages(MessageHandler handler) throws Exception {
-		String inFolder = getProperty("MAIL_IN_FOLDER");
-		String outFolder = getProperty("MAIL_OUT_FOLDER");
-		Map<Integer, byte[]> newMessages = getMessages(inFolder);
-		int[] msgNumbers = new int[newMessages.size()];
-		int i = 0;
-		for (Integer msgNum : newMessages.keySet()) {
-			byte[] message = newMessages.get(msgNum);
-			handler.handleMessageContent(message);
-			msgNumbers[i++] = msgNum;
+	private void init() throws Exception {
+		if (session==null) {
+			session = getSession("imap.gmail.com", 993, false);
 		}
-		if (outFolder!=null) moveMessages(inFolder, outFolder, msgNumbers);
-	}
+		if (imapStore==null) {
+			imapStore = connectToImap("imap.gmail.com", 993, session);
+		}
 
+	}
 
 	/**
 	 * Connects and authenticates to an IMAP server with OAuth2. You must have
@@ -139,6 +132,43 @@ public class IMAPClient {
 		return store;
 	}
 
+	public void sendMessage(Address from, Address[] to, String subject, MimeMultipart content) throws Exception {
+		try {
+			// from http://stackoverflow.com/questions/12503303/javamail-api-in-android-using-xoauth/12821612#12821612
+			// NOTE we do not use the same Session that the other methods in this class use, as that
+			// Session fails to send out messsages.
+		    Properties props = new Properties();
+		    String smtpHost = "smtp.gmail.com";
+		    int smtpPort = 587;
+		    props.put("mail.smtp.starttls.enable", "true");
+		    props.put("mail.smtp.starttls.required", "true");
+		    props.put("mail.smtp.sasl.enable", "false");
+		    props.put("mail.smtp.host", smtpHost);
+		    props.put("mail.smtp.port", ""+smtpPort);
+		    Session session = Session.getInstance(props);
+		    session.setDebug(false);
+			Message message = new MimeMessage(session);
+			message.setFrom(from);
+			message.setRecipients(Message.RecipientType.TO, to);
+			message.setSubject(subject);
+			message.setContent(content);
+			
+		    final URLName unusedUrlName = null;
+		    SMTPTransport transport = new SMTPTransport(session, unusedUrlName);
+		    // If the password is non-null, SMTP tries to do AUTH LOGIN.
+		    final String emptyPassword = null;
+		    transport.connect(smtpHost, smtpPort, getProperty("GMAIL_ADDRESS"), emptyPassword);
+			String oauthToken = getGmailOAuthAccessToken();
+			byte[] response = String.format("user=%s\1auth=Bearer %s\1\1", 
+					getProperty("GMAIL_ADDRESS"), oauthToken).getBytes();
+		    response = BASE64EncoderStream.encode(response);
+		    transport.issueCommand("AUTH XOAUTH2 " + new String(response), 235);
+		    transport.sendMessage(message, to);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 	private static String getGmailOAuthAccessToken() throws HttpException, IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		HttpPost post = new HttpPost("https://accounts.google.com/o/oauth2/token");
@@ -162,33 +192,33 @@ public class IMAPClient {
 		} 
 	}
 	
-	public void sendMessage(Address from, Address[] to, String subject, MimeMultipart content) {
-		try {
-			if (session==null) {
-				session = getSession("imap.gmail.com", 993, false);
-			}
-			Message message = new MimeMessage(session);
-			message.setFrom(from);
-			message.setRecipients(Message.RecipientType.TO, to);
-			message.setSubject(subject);
-			message.setContent(content);
-
-			Transport.send(message);
-		} catch (HttpException | IOException | MessagingException e) {
-			throw new RuntimeException(e);
+	/**
+	 * Check for new messages in the 'in-folder'.
+	 * Retrieve all the new messages and pass each one to the given 
+	 * 'handler' for processing.  Then move the messages to the output 
+	 * folder
+	 */
+	public void processNewMessages(MessageHandler handler) throws Exception {
+		init();
+		String inFolder = getProperty("MAIL_IN_FOLDER");
+		String outFolder = getProperty("MAIL_OUT_FOLDER");
+		Map<Integer, byte[]> newMessages = getMessages(inFolder);
+		int[] msgNumbers = new int[newMessages.size()];
+		int i = 0;
+		for (Integer msgNum : newMessages.keySet()) {
+			byte[] message = newMessages.get(msgNum);
+			handler.handleMessageContent(message);
+			msgNumbers[i++] = msgNum;
 		}
+		if (outFolder!=null) moveMessages(inFolder, outFolder, msgNumbers);
 	}
 
+
 	/**
-	 * Connects to Gmail account and downloads pdf files
+	 * Connects to Gmail account and downloads messages
 	 */
 	public Map<Integer, byte[]> getMessages(String emailFolder) throws Exception {
-		if (session==null) {
-			session = getSession("imap.gmail.com", 993, false);
-		}
-		if (imapStore==null) {
-			imapStore = connectToImap("imap.gmail.com", 993, session);
-		}
+		init();
 		Folder folder = imapStore.getFolder(emailFolder);
 		folder.open(READ_ONLY);  
 		Map<Integer, byte[]> ans = new TreeMap<Integer, byte[]>();
@@ -214,7 +244,8 @@ public class IMAPClient {
 		return ans;
 	}
 
-	public void moveMessages(String fromFolderName, String toFolderName, int[] messageIndices) throws HttpException, IOException, MessagingException {
+	public void moveMessages(String fromFolderName, String toFolderName, int[] messageIndices) throws Exception {
+		init();
 		Folder fromFolder = imapStore.getFolder(fromFolderName);
 		Folder toFolder = imapStore.getFolder(toFolderName);
 		fromFolder.open(Folder.READ_WRITE);    

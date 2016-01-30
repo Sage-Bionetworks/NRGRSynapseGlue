@@ -354,7 +354,7 @@ public class NRGRSynapseGlue {
 				MimeMultipart content = new MimeMultipart();
 				// add a message to the sender, including the reason for the rejection
 				MimeBodyPart reason = new MimeBodyPart();
-				reason.setContent(mmr.getReason(), ContentType.TEXT_PLAIN.getMimeType());
+				reason.setContent(mmr.getReason()+"\n(original message below)\n\n", ContentType.TEXT_PLAIN.getMimeType());
 				content.addBodyPart(reason);
 				// add another part for the original message
 				MimeMultipart mimeMultipart = (MimeMultipart)mimeMessage.getContent();
@@ -363,9 +363,7 @@ public class NRGRSynapseGlue {
 				}
 				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
 			}
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
