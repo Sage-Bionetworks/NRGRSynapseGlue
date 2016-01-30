@@ -8,7 +8,7 @@ import static org.sagebionetworks.TableUtil.APPROVED_ON;
 import static org.sagebionetworks.TableUtil.FIRST_NAME;
 import static org.sagebionetworks.TableUtil.LAST_NAME;
 import static org.sagebionetworks.TableUtil.MEMBERSHIP_REQUEST_EXPIRATION_DATE;
-import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOOUT;
+import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOUT;
 import static org.sagebionetworks.TableUtil.TOKEN_SENT_DATE;
 import static org.sagebionetworks.TableUtil.USER_ID;
 import static org.sagebionetworks.TableUtil.USER_NAME;
@@ -44,7 +44,7 @@ public class TableUtilTest {
 	private TableEntity table;
 	private TableUtil tableUtil;
 	
-	private ColumnModel createColumn(String name, ColumnType columnType) {
+	public static ColumnModel createColumn(String name, ColumnType columnType) {
 		ColumnModel c = new ColumnModel();
 		c.setName(name);
 		c.setColumnType(columnType);
@@ -71,7 +71,7 @@ public class TableUtilTest {
     	columns.add(createColumn(TOKEN_SENT_DATE, ColumnType.DATE));
        	columns.add(createColumn(MEMBERSHIP_REQUEST_EXPIRATION_DATE, ColumnType.DATE));
        	columns.add(createColumn(APPROVED_ON, ColumnType.DATE));
-           	columns = synapseClient.createColumnModels(columns);
+        columns = synapseClient.createColumnModels(columns);
     	List<String> columnIds = new ArrayList<String>();
     	for (ColumnModel column : columns) columnIds.add(column.getId());
 		table = new TableEntity();
@@ -125,7 +125,7 @@ public class TableUtilTest {
 		row = new Row(); row.setValues(Arrays.asList("333", null, atime.toString())); rows.add(row);
 		// make sure a legacy entry that doesn't have a teamId or expiration date doesn't cause a problem
 		row = new Row(); row.setValues(Arrays.asList("111", null, null)); rows.add(row);
-		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, table.getId());
+		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, table.getId());
 		
 		// if the MR is already in the table, then it is not returned
 		MembershipRequest mr = new MembershipRequest();
@@ -183,7 +183,7 @@ public class TableUtilTest {
 		row = new Row(); row.setValues(Arrays.asList("333", null, atime.toString(), null)); rows.add(row);
 		// make sure a legacy entry that doesn't have a teamId or expiration date doesn't cause a problem
 		row = new Row(); row.setValues(Arrays.asList("111", null, null, atime.toString())); rows.add(row);
-		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, table.getId());
+		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, table.getId());
 		
 		Collection<TokenContent> tcs;
 		
@@ -226,7 +226,7 @@ public class TableUtilTest {
 		rowSet.setHeaders(headers);
 		rowSet.setRows(rows);
 		rowSet.setTableId(table.getId());
-		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, table.getId());
+		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, table.getId());
 		
 		tcs = new ArrayList<TokenContent>();
 		tc = new TokenContent(111L, null, null, null, null, null);

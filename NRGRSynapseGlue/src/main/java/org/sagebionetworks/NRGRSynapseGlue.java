@@ -4,7 +4,7 @@ import static org.sagebionetworks.TableUtil.APPLICATION_TEAM_ID;
 import static org.sagebionetworks.TableUtil.FIRST_NAME;
 import static org.sagebionetworks.TableUtil.LAST_NAME;
 import static org.sagebionetworks.TableUtil.MEMBERSHIP_REQUEST_EXPIRATION_DATE;
-import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOOUT;
+import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOUT;
 import static org.sagebionetworks.TableUtil.TOKEN_SENT_DATE;
 import static org.sagebionetworks.TableUtil.USER_ID;
 import static org.sagebionetworks.TableUtil.USER_NAME;
@@ -76,6 +76,7 @@ public class NRGRSynapseGlue {
 	private MessageUtil messageUtil;
 	private TableUtil tableUtil;
 	private EvaluationUtil evaluationUtil;
+	private IMAPClient mailClient;
 
 	/*
 	 * Parameters:
@@ -92,6 +93,7 @@ public class NRGRSynapseGlue {
 		messageUtil = new MessageUtil(synapseClient);
 		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
+		this.mailClient = new IMAPClient();
 	}
 	
 	/*
@@ -101,11 +103,13 @@ public class NRGRSynapseGlue {
 			SynapseClient synapseClient, 
 			MessageUtil messageUtil, 
 			TableUtil tableUtil, 
-			EvaluationUtil evaluationUtil) {
+			EvaluationUtil evaluationUtil,
+			IMAPClient mailClient) {
 		this.synapseClient=synapseClient;
 		this.messageUtil=messageUtil;
 		this.tableUtil=tableUtil;
 		this.evaluationUtil=evaluationUtil;
+		this.mailClient=mailClient;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -189,7 +193,7 @@ public class NRGRSynapseGlue {
 					MEMBERSHIP_REQUEST_EXPIRATION_DATE};
 			rowSet.setHeaders(tableUtil.createRowSetHeaders(tableId, columnNames));
 			rowSet.setRows(applicantsProcessed);
-			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, tableId);
+			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, tableId);
 		}
 	}
 	
@@ -263,13 +267,12 @@ public class NRGRSynapseGlue {
 					throw new Exception("No valid token found in file.");
 				}
 				if (validTokensInMessage < tokenAnalysisResults.size()) {
-					String reason = ""+validTokensInMessage+" valid tokens and "+
-							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid tokens "+
-							" were found in this message.";
+					String reason = ""+validTokensInMessage+" valid token(s) and "+
+							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid token(s) "+
+							"were found in this message.";
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
 				status.setStatus(SubmissionStatusEnum.REJECTED);
 				EvaluationUtil.addRejectionReasonToStatus(status, e.getMessage());
 				if (message!=null) result.addMessageToSender(new MimeMessageAndReason(message, e.getMessage()));
@@ -325,14 +328,14 @@ public class NRGRSynapseGlue {
 				row.getValues().set(approvedOrRejectedDateIndex, now.toString());
 			}
 			String tableId = getProperty("TABLE_ID");
-			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOOUT, tableId);
+			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, tableId);
 		}
 		
 		// update submission statuses
 		evaluationUtil.updateSubmissionStatusBatch(sprs.getProcessedSubmissions(), evaluationId);
 
 		System.out.println("Retrieved "+sprs.getProcessedSubmissions().size()+
-				" submissions for approval and accepted "+sprs.getValidTokens()+" users.");
+				" submissions for approval and accepted "+sprs.getValidTokens().size()+" users.");
 
 	}
 	
@@ -343,7 +346,6 @@ public class NRGRSynapseGlue {
 	 */
 	private void sendRejectionsToMailSender(List<MimeMessageAndReason> mimeMessageAndReasons) {
 		if (mimeMessageAndReasons.isEmpty()) return;
-		IMAPClient mailClient = new IMAPClient();
 		try {
 			Address notificationFrom = new InternetAddress("noreply@sagebase.org");
 			for (MimeMessageAndReason mmr : mimeMessageAndReasons) {
@@ -354,7 +356,10 @@ public class NRGRSynapseGlue {
 				reason.setContent(mmr.getReason(), ContentType.TEXT_PLAIN.getMimeType());
 				content.addBodyPart(reason);
 				// add another part for the original message
-				content.addBodyPart((BodyPart)mimeMessage.getContent());
+				MimeMultipart mimeMultipart = (MimeMultipart)mimeMessage.getContent();
+				for (int i=0; i<mimeMultipart.getCount(); i++) {
+					content.addBodyPart(mimeMultipart.getBodyPart(i));
+				}
 				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
 			}
 		} catch (MessagingException e) {

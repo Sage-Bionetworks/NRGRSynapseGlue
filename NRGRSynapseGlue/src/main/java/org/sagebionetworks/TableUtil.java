@@ -32,7 +32,7 @@ public class TableUtil {
 	public static final String MEMBERSHIP_REQUEST_EXPIRATION_DATE = "Date Membership Request Expires"; // new field
 	public static final String APPROVED_ON = "Date Approved";
 
-	public static final long TABLE_UPDATE_TIMEOOUT = 10000L;
+	public static final long TABLE_UPDATE_TIMEOUT = 10000L;
 
 	private SynapseClient synapseClient;
 	
