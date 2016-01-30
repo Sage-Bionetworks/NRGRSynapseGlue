@@ -3,6 +3,7 @@ package org.sagebionetworks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,12 @@ public class Util {
 		scIntern.setRepositoryEndpoint("https://repo-prod.prod.sagebase.org/repo/v1");
 		scIntern.setFileEndpoint("https://repo-prod.prod.sagebase.org/file/v1");
 		return SynapseProfileProxy.createProfileProxy(scIntern);
+	}
+	
+	public static Date cleanDate(Date d) {
+		if (d==null) return d;
+		if (d.getTime()==0L) return null;
+		return d;
 	}
 
 

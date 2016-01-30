@@ -1,6 +1,7 @@
 package org.sagebionetworks;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -70,30 +71,50 @@ public class TokenUtilTest {
 	}
 
     @Test
-	public void testCreateAndParseV2Token() throws Exception {
-		Long userId = new Long(273995L);
-		long now = System.currentTimeMillis();
-		long mrExpiration = now - 1000L; // just make it different
-		DatasetSettings settings = new DatasetSettings();
-		settings.setTokenLabel("PsychENCODE");
-		List<Long> arList = Collections.singletonList(111L);
-		settings.setAccessRequirementIds(arList);
-		settings.setApplicationTeamId("12345");
-		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
-		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
-		assertEquals(1, tars.size());
-		TokenAnalysisResult tar = tars.iterator().next();
-		assertTrue(tar.isValid());
-		assertEquals(userId, tar.getUserId());
-		assertNull(tar.getReason());
-		TokenContent tc = tar.getTokenContent();
-		assertEquals(userId.longValue(), tc.getUserId());
-		assertEquals(arList, tc.getAccessRequirementIds());
-		assertEquals("12345", tc.getApplicationTeamId());
-		assertEquals(new Date(mrExpiration), tc.getMembershipRequestExpiration());
-		assertEquals(new Date(now), tc.getTimestamp());
-		assertEquals("PsychENCODE", tc.getTokenLabel());
-	}
+ 	public void testCreateAndParseV2Token() throws Exception {
+ 		Long userId = new Long(273995L);
+ 		long now = System.currentTimeMillis();
+ 		long mrExpiration = now - 1000L; // just make it different
+ 		DatasetSettings settings = new DatasetSettings();
+ 		settings.setTokenLabel("PsychENCODE");
+ 		List<Long> arList = Collections.singletonList(111L);
+ 		settings.setAccessRequirementIds(arList);
+ 		settings.setApplicationTeamId("12345");
+ 		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
+ 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
+ 		assertEquals(1, tars.size());
+ 		TokenAnalysisResult tar = tars.iterator().next();
+ 		assertTrue(tar.isValid());
+ 		assertEquals(userId, tar.getUserId());
+ 		assertNull(tar.getReason());
+ 		TokenContent tc = tar.getTokenContent();
+ 		assertEquals(userId.longValue(), tc.getUserId());
+ 		assertEquals(arList, tc.getAccessRequirementIds());
+ 		assertEquals("12345", tc.getApplicationTeamId());
+ 		assertEquals(new Date(mrExpiration), tc.getMembershipRequestExpiration());
+ 		assertEquals(new Date(now), tc.getTimestamp());
+ 		assertEquals("PsychENCODE", tc.getTokenLabel());
+ 	}
+
+    @Test
+ 	public void testCreateAndParseV2TokenWithNullExpirationDate() throws Exception {
+ 		Long userId = new Long(273995L);
+ 		long now = System.currentTimeMillis();
+ 		Long mrExpiration = null;
+ 		DatasetSettings settings = new DatasetSettings();
+ 		settings.setTokenLabel("PsychENCODE");
+ 		List<Long> arList = Collections.singletonList(111L);
+ 		settings.setAccessRequirementIds(arList);
+ 		settings.setApplicationTeamId("12345");
+ 		String token = TokenUtil.createToken(""+userId, now, settings, mrExpiration);
+ 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), now);
+ 		assertEquals(1, tars.size());
+ 		TokenAnalysisResult tar = tars.iterator().next();
+ 		assertFalse(tar.isValid());
+ 		assertEquals(userId, tar.getUserId());
+ 		assertEquals("Illegal membership request time stamp in message.", tar.getReason());
+ 		TokenContent tc = tar.getTokenContent();
+ 	}
 
 	@Test
 	public void testParseTokenFromMessageContent() throws Exception {

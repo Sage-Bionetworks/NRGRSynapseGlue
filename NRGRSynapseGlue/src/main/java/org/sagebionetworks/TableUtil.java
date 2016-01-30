@@ -30,7 +30,7 @@ public class TableUtil {
 	public static final String LAST_NAME = "Last Name";
 	public static final String TOKEN_SENT_DATE = "Date Email Sent";
 	public static final String MEMBERSHIP_REQUEST_EXPIRATION_DATE = "Date Membership Request Expires"; // new field
-	public static final String APPROVED_ON = "Date Approved";
+	public static final String APPROVED_ON = "Date Approved/Rejected";
 
 	public static final long TABLE_UPDATE_TIMEOUT = 10000L;
 
@@ -57,7 +57,7 @@ public class TableUtil {
 				teamId = mr.getTeamId();
 			} else {
 				// all mr's should be for the same teamId
-				if (teamId!=mr.getTeamId()) 
+				if (!teamId.equals(mr.getTeamId())) 
 					throw new IllegalStateException("Multiple Team IDs: "+teamId+" and "+mr.getTeamId());
 			}
 			if (firstTime) firstTime=false; else sb.append(",");
@@ -73,11 +73,18 @@ public class TableUtil {
 		// starting from a list of all membership requests, remove the ones that have already been processed
 		List<MembershipRequest> newMembershipRequests = new ArrayList<MembershipRequest>(membershipRequests);
 		for (MembershipRequest mr : membershipRequests) {
+			String mrUserId = mr.getUserId();
+			Date mrExpiresOn = Util.cleanDate(mr.getExpiresOn());
 			for (Row row : queryResult.getSecond().getRows()) {
 				List<String> values = row.getValues();
-				if (mr.getUserId().equals(values.get(userIdIndex)) &&
-						values.get(expirationIndex)!=null && 
-						mr.getExpiresOn().equals(new Date(Long.parseLong(values.get(expirationIndex))))) {
+				String rowUserId = values.get(userIdIndex);
+				String rowExpiresOnString = values.get(expirationIndex);
+				Date rowExpiresOn = rowExpiresOnString==null ? null : new Date(Long.parseLong(rowExpiresOnString));
+				if (mrUserId.equals(rowUserId) &&
+						( (rowExpiresOn==null && mrExpiresOn==null) ||
+						  (rowExpiresOn!=null && mrExpiresOn!=null && mrExpiresOn.equals(rowExpiresOn))
+						)
+				) {
 					newMembershipRequests.remove(mr);
 					break;
 				}
