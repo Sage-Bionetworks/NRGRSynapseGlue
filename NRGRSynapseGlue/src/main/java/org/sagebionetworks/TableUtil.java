@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.client.exceptions.SynapseResultNotReadyException;
@@ -128,10 +129,9 @@ public class TableUtil {
 				String rowUser = values.get(userIdIndex);
 				String rowTeam = values.get(teamIdIndex);
 				String rowExpiration = values.get(expirationIndex);
-				if (userId.equals(rowUser) &&
-						((teamId==null && rowTeam==null) || teamId.equals(rowTeam)) &&
-						((mrExpiration==null && rowExpiration==null) || 
-								mrExpiration.equals(new Date(Long.parseLong(rowExpiration))))) {
+				boolean datesMatch = rowExpiration==null ? mrExpiration==null :
+					(new Date(Long.parseLong(rowExpiration))).equals(mrExpiration);
+				if (userId.equals(rowUser) && StringUtils.equals(teamId, rowTeam) && datesMatch) {
 					// found it!
 					
 					// make a new row and add it to the result that we return

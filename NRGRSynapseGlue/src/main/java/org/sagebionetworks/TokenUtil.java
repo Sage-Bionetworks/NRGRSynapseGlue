@@ -46,7 +46,7 @@ public class TokenUtil {
 		return accessRequirementIds;
 	}
 
-	public static String createToken(String userId, long now, DatasetSettings settings, long mrExpiration) {
+	public static String createToken(String userId, long now, DatasetSettings settings, Long mrExpiration) {
 		String unsignedToken = 
 				createV2UnsignedToken(
 						userId, 
@@ -71,7 +71,7 @@ public class TokenUtil {
 	}
 	
 	// now there are 6 fields (label, userId, applicationTeamId, ars, mrExpiration, timestamp)
-	public static String createV2UnsignedToken(String userId, long now, DatasetSettings settings, long mrExpiration) {
+	public static String createV2UnsignedToken(String userId, long now, DatasetSettings settings, Long mrExpiration) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PART_SEPARATOR);
 		sb.append(settings.getTokenLabel());
@@ -287,11 +287,11 @@ public class TokenUtil {
 			return createFailedTokenAnalysisResult(userId, "Bad Access Requirement ID list: "+accessRequirementIdString);
 		}
 		settings.setAccessRequirementIds(accessRequirementIds);
-		long mrExpiration;
+		Long mrExpiration;
 		try {
-			mrExpiration = Long.parseLong(mrExpirationString);
+			mrExpiration = mrExpirationString==null||mrExpirationString.equalsIgnoreCase("null") ? null : Long.parseLong(mrExpirationString);
 		} catch (NumberFormatException e) {
-			return createFailedTokenAnalysisResult(userId, "Illegal membership request time stamp in message.");
+			return createFailedTokenAnalysisResult(userId, "Illegal membership request time stamp in message: "+mrExpirationString);
 		}
 		String recomputedHmac = hmac(
 				createV2UnsignedToken(
@@ -301,7 +301,7 @@ public class TokenUtil {
 						mrExpiration));
 		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature.");
 		TokenContent tokenContent = new TokenContent(userId, accessRequirementIds, new Date(epoch), 
-				settings.getTokenLabel(), settings.getApplicationTeamId(), new Date(mrExpiration));
+				settings.getTokenLabel(), settings.getApplicationTeamId(), mrExpiration==null?null:new Date(mrExpiration));
 		return new TokenAnalysisResult(tokenContent, true, userId, null);
 	}
 	
