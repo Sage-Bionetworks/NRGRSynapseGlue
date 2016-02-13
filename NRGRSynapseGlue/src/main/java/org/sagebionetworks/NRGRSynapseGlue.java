@@ -27,7 +27,6 @@ import java.util.Set;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.mail.Address;
-import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -153,10 +152,9 @@ public class NRGRSynapseGlue {
 				for (MembershipRequest mr : newMembershipRequests) {
 					String userId = mr.getUserId();
 					Date expiresOn = Util.cleanDate(mr.getExpiresOn());
-					if (expiresOn==null) throw new RuntimeException("missing membership request expiration date encountered for user "+
-							mr.getUserId()+" and team "+mr.getTeamId());
+					Long expiresOnAsLong = expiresOn==null ? null : expiresOn.getTime();
 	
-					String token = TokenUtil.createToken(userId, now, datasetSettings, expiresOn.getTime());
+					String token = TokenUtil.createToken(userId, now, datasetSettings, expiresOnAsLong);
 					UserProfile userProfile = synapseClient.getUserProfile(userId);
 					String messageBody = createTokenMessage(userProfile, token, datasetSettings.getTokenEmailSynapseId());
 					MessageToUser messageToUser = new MessageToUser();
@@ -172,7 +170,7 @@ public class NRGRSynapseGlue {
 							userProfile.getFirstName(),
 							userProfile.getLastName(),
 							""+now,
-							""+expiresOn.getTime()
+							expiresOnAsLong==null?null:""+expiresOnAsLong
 					}));
 					applicantsProcessed.add(applicantProcessed);
 				}
