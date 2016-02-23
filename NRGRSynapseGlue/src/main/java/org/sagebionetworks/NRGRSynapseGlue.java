@@ -299,12 +299,12 @@ public class NRGRSynapseGlue {
 		// notify message sender about any bad messages (missing tokens, etc.)
 		sendRejectionsToMailSender(sprs.getMessagesToSender());
 		
-		// find those not already approved
-		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
-		
-		for (TokenContent tc : usersToApprove.getTokens()) {
+		for (TokenContent tc : sprs.getValidTokens()) {
 			if (tc.getApplicationTeamId()==null) tc.setApplicationTeamId(getProperty("ORIGINAL_APPLICATION_TEAM_ID"));
 		}
+		
+		// find those not already approved
+		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
 		
 		// create the AccessApprovals in Synapse
 		createAccessApprovals(usersToApprove.getTokens());
