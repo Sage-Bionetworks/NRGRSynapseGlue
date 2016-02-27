@@ -232,5 +232,23 @@ public class TokenUtilTest {
 
 	}
 
+	// this case appeared as four valid and one invalid token because one copy of one valid token
+	// was added with an extra line break.
+	@Test
+	public void testFourValidOneInvalid() throws Exception {
+		InputStream is = null;
+		try {
+			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("fourValidOneInvalid.txt");
+			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), currentTimeForTesting);
+			assertEquals(4, tars.size());
+			for (TokenAnalysisResult tar : tars) {
+				assertTrue(tar.getReason(), tar.isValid());
+			}
+		} finally {
+			is.close();
+		}
+
+	}
+
 
 }

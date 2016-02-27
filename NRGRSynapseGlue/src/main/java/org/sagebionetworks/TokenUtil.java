@@ -161,6 +161,9 @@ public class TokenUtil {
 				result.addAll(parseTokensFromMessageContent(bodyPart.getContent(), now));
 			}
 			return result;
+		} else if (content instanceof MimeMessage) {
+			MimeMessage mimeMessage = (MimeMessage) content;
+			return parseTokensFromMessageContent(mimeMessage.getContent(), now);
 		} else {
 			throw new RuntimeException("Unexpected content type "+content.getClass());
 		}
@@ -187,7 +190,10 @@ public class TokenUtil {
 			if (trailingTerminator<0) { 
 				break;
 			} else {
-				result.add(parseToken( messageContent.substring(tokenStart, trailingTerminator).trim(), now));
+				String tokenSubstring = messageContent.substring(tokenStart, trailingTerminator).trim();
+				// there was a case in which a line break was added to the HMAC. There shouldn't be line
+				// breaks (or any other white space, so we just remove it altogether
+				result.add(parseToken( tokenSubstring.replaceAll("\\s", ""), now));
 				start = trailingTerminator+tokenTerminator.length();
 			}
 			leadingTerminator = messageContent.indexOf(tokenTerminator, start);
