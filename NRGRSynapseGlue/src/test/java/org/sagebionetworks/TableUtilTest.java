@@ -157,7 +157,7 @@ public class TableUtilTest {
 		mr = new MembershipRequest();
 		mr.setUserId("111");
 		mr.setTeamId("999");
-		mr.setExpiresOn(new Date(atime+1));
+		mr.setExpiresOn(new Date(atime+1000));
 		newMRs = tableUtil.getNewMembershipRequests(Collections.singletonList(mr));
 		assertEquals(1, newMRs.size());
 		assertEquals(mr, newMRs.get(0));

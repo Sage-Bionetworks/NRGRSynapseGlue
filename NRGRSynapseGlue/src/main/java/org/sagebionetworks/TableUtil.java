@@ -81,11 +81,7 @@ public class TableUtil {
 				String rowUserId = values.get(userIdIndex);
 				String rowExpiresOnString = values.get(expirationIndex);
 				Date rowExpiresOn = rowExpiresOnString==null ? null : new Date(Long.parseLong(rowExpiresOnString));
-				if (mrUserId.equals(rowUserId) &&
-						( (rowExpiresOn==null && mrExpiresOn==null) ||
-						  (rowExpiresOn!=null && mrExpiresOn!=null && mrExpiresOn.equals(rowExpiresOn))
-						)
-				) {
+				if (mrUserId.equals(rowUserId) && Util.datesEqualNoMillis(rowExpiresOn, mrExpiresOn)) {
 					newMembershipRequests.remove(mr);
 					break;
 				}
@@ -130,7 +126,7 @@ public class TableUtil {
 				String rowTeam = values.get(teamIdIndex);
 				String rowExpiration = values.get(expirationIndex);
 				boolean datesMatch = rowExpiration==null ? mrExpiration==null :
-					(new Date(Long.parseLong(rowExpiration))).equals(mrExpiration);
+					Util.datesEqualNoMillis(new Date(Long.parseLong(rowExpiration)), mrExpiration);
 				if (userId.equals(rowUser) && StringUtils.equals(teamId, rowTeam) && datesMatch) {
 					// found it!
 					

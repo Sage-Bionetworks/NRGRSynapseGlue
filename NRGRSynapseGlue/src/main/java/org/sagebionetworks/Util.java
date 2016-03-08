@@ -98,6 +98,14 @@ public class Util {
 		if (d.getTime()==0L) return null;
 		return d;
 	}
+	
+	public static boolean datesEqualNoMillis(Date d1, Date d2) {
+		if (d1==null && d2==null) return true;
+		if (d1==null || d2==null) return false;
+		long d1Sec = d1.getTime()/1000L;
+		long d2Sec = d2.getTime()/1000L;
+		return d1Sec==d2Sec;
+	}
 
 
 }

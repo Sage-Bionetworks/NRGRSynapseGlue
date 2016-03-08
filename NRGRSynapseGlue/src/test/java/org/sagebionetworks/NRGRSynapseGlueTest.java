@@ -30,7 +30,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.internet.MimeMultipart;
@@ -159,7 +161,11 @@ public class NRGRSynapseGlueTest  {
 				captureMessageToUser.capture(),
 				captureMessageBody.capture());
 		
-		assertEquals(Collections.singleton(USER_ID), captureMessageToUser.getValue().getRecipients());
+		Set<String> recipients = new HashSet<String>(Collections.singleton(USER_ID));
+		String ccRecipient = getProperty("CC_RECIPIENT", true);
+		if (ccRecipient!=null) recipients.add(ccRecipient);
+
+		assertEquals(recipients, captureMessageToUser.getValue().getRecipients());
 		assertEquals("CommonMind Data Access Request", captureMessageToUser.getValue().getSubject());
 		assertEquals(message, captureMessageBody.getValue());
 		

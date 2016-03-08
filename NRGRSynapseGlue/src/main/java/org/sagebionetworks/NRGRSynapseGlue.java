@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,7 +160,10 @@ public class NRGRSynapseGlue {
 					String messageBody = createTokenMessage(userProfile, token, datasetSettings.getTokenEmailSynapseId());
 					MessageToUser messageToUser = new MessageToUser();
 					messageToUser.setSubject(datasetSettings.getDataDescriptor()+" Data Access Request");
-					messageToUser.setRecipients(Collections.singleton(userId));
+					Set<String> recipients = new HashSet<String>(Collections.singleton(userId));
+					String ccRecipient = getProperty("CC_RECIPIENT", true);
+					if (ccRecipient!=null) recipients.add(ccRecipient);
+					messageToUser.setRecipients(recipients);
 					messageUtil.sendMessage(messageToUser, messageBody);
 					
 					Row applicantProcessed = new Row();
@@ -399,7 +403,10 @@ public class NRGRSynapseGlue {
 				DatasetSettings settings = settingsMap.get(tc.getApplicationTeamId());
 				MessageToUser message = new MessageToUser();
 				message.setSubject(settings.getDataDescriptor()+" Data Access Approval");
-				message.setRecipients(Collections.singleton(""+tc.getUserId()));
+				Set<String> recipients = new HashSet<String>(Collections.singleton(""+tc.getUserId()));
+				String ccRecipient = getProperty("CC_RECIPIENT", true);
+				if (ccRecipient!=null) recipients.add(ccRecipient);
+				message.setRecipients(recipients);
 				synapseClient.sendStringMessage(message, 
 						messageUtil.createGenericMessage(userProfile, 
 								settings.getApprovalEmailSynapseId()));
