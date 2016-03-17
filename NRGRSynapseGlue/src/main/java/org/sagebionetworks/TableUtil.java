@@ -42,19 +42,20 @@ public class TableUtil {
 	private SynapseClient synapseClient;
 	
 	private String tableId;
+	private String configurationTableId;
 
-	public TableUtil(SynapseClient synapseClient, String tableId) {
+	public TableUtil(SynapseClient synapseClient, String tableId, String configurationTableId) {
 		this.synapseClient=synapseClient;
 		this.tableId=tableId;
+		this.configurationTableId=configurationTableId;
 	}
 	
 	/*
 	 * return a map whose key is signup team ID and value is the collection of settings for that team
 	 */
 	public  Map<String,DatasetSettings> getDatasetSettings() throws SynapseException, InterruptedException {
-		String tableId = getProperty("CONFIGURATION_TABLE_ID");
 		Pair<List<SelectColumn>, RowSet> queryResult = executeQuery(
-				"SELECT * FROM "+tableId, tableId, Integer.MAX_VALUE);
+				"SELECT * FROM "+configurationTableId, configurationTableId, Integer.MAX_VALUE);
 		
 		Map<String,DatasetSettings> result = new HashMap<String,DatasetSettings>();
 

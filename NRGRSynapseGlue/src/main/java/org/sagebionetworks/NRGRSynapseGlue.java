@@ -91,7 +91,7 @@ public class NRGRSynapseGlue {
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);
 		messageUtil = new MessageUtil(synapseClient);
-		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"));
+		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"), getProperty("CONFIGURATION_TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
 		this.mailClient = new IMAPClient();
 	}
