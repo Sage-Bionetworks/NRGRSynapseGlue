@@ -35,6 +35,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
@@ -231,18 +232,10 @@ public class NRGRSynapseGlue {
 	 * given tokenAnalysisResults.  In practice the returned list should have size zero or one, but theoretically
 	 * it may have more than one.
 	 */
-	Set<String> getRequiredIPOriginatingSubnet(Set<TokenAnalysisResult> tokenAnalysisResults, Map<String,DatasetSettings> settings) {
-		Set<String> result = new HashSet<String>();
-		for (TokenAnalysisResult tar : tokenAnalysisResults) {
-			if(tar.isValid()) {
-				String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
-				DatasetSettings ds = settings.get(applicationTeamId);
-				if (ds.getOriginatingIPsubnet()!=null && ds.getOriginatingIPsubnet().length()>0) {
-					result.add(ds.getOriginatingIPsubnet());
-				}
-			}
-		}
-		return result;
+	String getRequiredIPOriginatingSubnet(TokenAnalysisResult tar, Map<String,DatasetSettings> settings) {
+		String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
+		DatasetSettings ds = settings.get(applicationTeamId);
+		return ds.getOriginatingIPsubnet();
 	}
 	
 	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess, Map<String,DatasetSettings> settings) {
@@ -268,10 +261,29 @@ public class NRGRSynapseGlue {
 				Set<TokenAnalysisResult> tokenAnalysisResults = 
 						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), settings, System.currentTimeMillis());
 				int validTokensInMessage = 0;
+				int messageViolatesSubnetRequirementTokenCount = 0;
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
 						validTokensInMessage++;
-						result.addValidToken(tar.getTokenContent());
+						String rios = getRequiredIPOriginatingSubnet(tar, settings);
+						if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId) &&
+							!StringUtils.isEmpty(rios) && 
+							!OriginValidator.isOriginatingIPInSubnet(message, rios)) {
+							messageViolatesSubnetRequirementTokenCount++;
+						} else {
+							result.addValidToken(tar.getTokenContent());
+						}
+					}
+				}
+				if (messageViolatesSubnetRequirementTokenCount>0) {
+					String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
+					if (messageViolatesSubnetRequirementTokenCount==validTokensInMessage) {
+						throw new Exception(reason);
+					} else {
+						// This is weird edge case in which the message has the right subnet for some
+						// tokens, but not for others.
+						reason = "For "+messageViolatesSubnetRequirementTokenCount+" tokens, "+reason;
+						result.addMessageToSender(new MimeMessageAndReason(message, reason));
 					}
 				}
 				if (validTokensInMessage==0) {
@@ -282,14 +294,6 @@ public class NRGRSynapseGlue {
 							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid token(s) "+
 							"were found in this message.";
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
-				}
-				Set<String> requiredIPOriginatingSubnets = getRequiredIPOriginatingSubnet(tokenAnalysisResults, settings);
-				if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
-					for (String requiredIOriginatingSubnet : requiredIPOriginatingSubnets) {
-						if (!OriginValidator.isOriginatingIPInSubnet(message, requiredIOriginatingSubnet)) {
-							throw new Exception("Message lacks X-Originating-IP header or is outside of the allowed subnet.");
-						}	
-					}
 				}
 			} catch (Exception e) {
 				status.setStatus(SubmissionStatusEnum.REJECTED);

@@ -218,13 +218,17 @@ public class NRGRSynapseGlueTest  {
 		}
 	}
 	
-	private static DatasetSettings createDatasetSettings(String teamId, String datasetName) {
+	private static DatasetSettings createDatasetSettings() {
+		return createDatasetSettings(TEAM_ID, "CommonMind", null);
+	}
+		
+	private static DatasetSettings createDatasetSettings(String teamId, String datasetName, String originatingIpSubnet) {
 		DatasetSettings datasetSettings = new DatasetSettings();
 		datasetSettings.setApplicationTeamId(teamId);
 		datasetSettings.setAccessRequirementIds(Collections.singletonList(999L));
 		datasetSettings.setApprovalEmailSynapseId("syn202");
 		datasetSettings.setDataDescriptor(datasetName);
-		datasetSettings.setOriginatingIPsubnet("156.40.0.0/16");
+		datasetSettings.setOriginatingIPsubnet(originatingIpSubnet); //"156.40.0.0/16"
 		datasetSettings.setTokenEmailSynapseId("syn101");
 		datasetSettings.setTokenExpirationTimeDays(244);
 		datasetSettings.setTokenLabel(datasetName);
@@ -233,16 +237,16 @@ public class NRGRSynapseGlueTest  {
 	
 	private static Map<String, DatasetSettings> createDatasetSettingsMap() {
 		Map<String, DatasetSettings> result = new HashMap<String, DatasetSettings>();
-		DatasetSettings ds = createDatasetSettings(TEAM_ID, "CommonMind");
+		DatasetSettings ds = createDatasetSettings(TEAM_ID, "CommonMind", "156.40.0.0/16");
 		result.put(ds.getApplicationTeamId(), ds);
-		ds = createDatasetSettings(TEAM_2_ID, "foo");
+		ds = createDatasetSettings(TEAM_2_ID, "foo", null);
 		result.put(ds.getApplicationTeamId(), ds);
 		return result;
 	}
 	
 	@Test
 	public void testProcessReceivedSubmissions_ValidToken() throws Exception {
-		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo", null);
 		long now = System.currentTimeMillis();
 		String token = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
 		File downloadedFile = createMessageWithToken(token);
@@ -283,17 +287,19 @@ public class NRGRSynapseGlueTest  {
 	
 	@Test
 	public void testProcessReceivedSubmissions_MissingXOriginatingIPHeader() throws Exception {
-		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo", "140.70.0.0/16");
 		long now = System.currentTimeMillis();
 		String token = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
 		File downloadedFile = createMessageWithToken(token);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
-
+		Map<String,DatasetSettings> dsMap = new HashMap<String,DatasetSettings>();
+		dsMap.put(datasetSettings.getApplicationTeamId(), datasetSettings);
+		
 		// method under test
-		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
+		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, dsMap);
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
-		assertEquals(SubmissionStatusEnum.CLOSED, submissionStatus.getStatus());
+		assertEquals(SubmissionStatusEnum.REJECTED, submissionStatus.getStatus());
 		StringAnnotation sa = submissionStatus.getAnnotations().getStringAnnos().get(0);
 		assertEquals("rejectionReason", sa.getKey());
 		String expectedErrorMessage = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
@@ -307,7 +313,7 @@ public class NRGRSynapseGlueTest  {
 	
 	@Test
 	public void testProcessReceivedSubmissions_OneValidAndOneInvalid() throws Exception {
-		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo", null);
 		long now = System.currentTimeMillis();
 		String validToken = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
 		long tokenExpiration = datasetSettings.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
@@ -335,7 +341,7 @@ public class NRGRSynapseGlueTest  {
 	public void testApproveApplicants() throws Exception {
 		when(evaluationUtil.getReceivedSubmissions(anyString())).thenReturn(submissionsToProcess);
 		// let's have one valid and one invalid token
-		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo", null);
 		long now = System.currentTimeMillis();
 		String validToken = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
 		long tokenExpiration = datasetSettings.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
