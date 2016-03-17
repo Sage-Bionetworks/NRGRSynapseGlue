@@ -35,6 +35,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
@@ -90,7 +91,7 @@ public class NRGRSynapseGlue {
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);
 		messageUtil = new MessageUtil(synapseClient);
-		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"));
+		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"), getProperty("CONFIGURATION_TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
 		this.mailClient = new IMAPClient();
 	}
@@ -137,7 +138,7 @@ public class NRGRSynapseGlue {
 	public void processNewApplicants() throws Exception {
 		List<Row> applicantsProcessed = new ArrayList<Row>();
 		long now = System.currentTimeMillis();
-		for (DatasetSettings datasetSettings : Util.getDatasetSettings().values()) {
+		for (DatasetSettings datasetSettings : tableUtil.getDatasetSettings().values()) {
 			// process each data set
 			long total = Integer.MAX_VALUE;
 			for (long offset=0; offset<total; offset+=PAGE_SIZE) {
@@ -226,7 +227,18 @@ public class NRGRSynapseGlue {
 		return tms.getIsMember();
 	}
 	
-	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess) {
+	/*
+	 * return the list of required IP originating subnets (if any) required by the valid tokens in the
+	 * given tokenAnalysisResults.  In practice the returned list should have size zero or one, but theoretically
+	 * it may have more than one.
+	 */
+	String getRequiredIPOriginatingSubnet(TokenAnalysisResult tar, Map<String,DatasetSettings> settings) {
+		String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
+		DatasetSettings ds = settings.get(applicationTeamId);
+		return ds.getOriginatingIPsubnet();
+	}
+	
+	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess, Map<String,DatasetSettings> settings) {
 		String myOwnSnapseId = null;
 		SubmissionProcessingResult result = new SubmissionProcessingResult();
 		for (SubmissionBundle bundle : submissionsToProcess) {
@@ -244,26 +256,34 @@ public class NRGRSynapseGlue {
 				if (myOwnSnapseId==null) {
 					myOwnSnapseId = synapseClient.getMyProfile().getOwnerId();
 				}
-				if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
-					String originatingIpSubnet = getProperty("ORIGINATING_IP_SUBNET", /*nullIsOK*/true);
-					if (originatingIpSubnet!=null && originatingIpSubnet.length()>0 && 
-							!OriginValidator.isOriginatingIPInSubnet(message, originatingIpSubnet)) {
-						String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
-						status.setStatus(SubmissionStatusEnum.REJECTED);
-						EvaluationUtil.addRejectionReasonToStatus(status, reason);
-						result.addMessageToSender(new MimeMessageAndReason(message, reason));
-						continue; // done processing this bundle
-					}						
-				}
 				
 				fileIs = new FileInputStream(temp);
 				Set<TokenAnalysisResult> tokenAnalysisResults = 
-						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), System.currentTimeMillis());
+						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), settings, System.currentTimeMillis());
 				int validTokensInMessage = 0;
+				int messageViolatesSubnetRequirementTokenCount = 0;
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
 						validTokensInMessage++;
-						result.addValidToken(tar.getTokenContent());
+						String rios = getRequiredIPOriginatingSubnet(tar, settings);
+						if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId) &&
+							!StringUtils.isEmpty(rios) && 
+							!OriginValidator.isOriginatingIPInSubnet(message, rios)) {
+							messageViolatesSubnetRequirementTokenCount++;
+						} else {
+							result.addValidToken(tar.getTokenContent());
+						}
+					}
+				}
+				if (messageViolatesSubnetRequirementTokenCount>0) {
+					String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
+					if (messageViolatesSubnetRequirementTokenCount==validTokensInMessage) {
+						throw new Exception(reason);
+					} else {
+						// This is weird edge case in which the message has the right subnet for some
+						// tokens, but not for others.
+						reason = "For "+messageViolatesSubnetRequirementTokenCount+" tokens, "+reason;
+						result.addMessageToSender(new MimeMessageAndReason(message, reason));
 					}
 				}
 				if (validTokensInMessage==0) {
@@ -296,16 +316,13 @@ public class NRGRSynapseGlue {
 	// Check for incoming email and if there is a valid attachment then approve them
 	public void approveApplicants() throws Exception {
 		String evaluationId = getProperty("EVALUATION_ID");
+		Map<String,DatasetSettings> settings = tableUtil.getDatasetSettings();
 
 		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
-		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions);
+		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
 		
 		// notify message sender about any bad messages (missing tokens, etc.)
 		sendRejectionsToMailSender(sprs.getMessagesToSender());
-		
-		for (TokenContent tc : sprs.getValidTokens()) {
-			if (tc.getApplicationTeamId()==null) tc.setApplicationTeamId(getProperty("ORIGINAL_APPLICATION_TEAM_ID"));
-		}
 		
 		// find those not already approved
 		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
@@ -317,7 +334,6 @@ public class NRGRSynapseGlue {
 		acceptTeamMembershipRequests(usersToApprove.getTokens());
 
 		// send the notifications
-		Map<String,DatasetSettings> settings = Util.getDatasetSettings();
 		sendApproveNotifications(usersToApprove.getTokens(), settings);
 		
 		// update the approval records in the Table

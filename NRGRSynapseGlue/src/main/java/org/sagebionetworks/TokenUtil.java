@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.crypto.Mac;
@@ -37,6 +38,21 @@ public class TokenUtil {
 	// from tokens which may have been generated before the change.
 	public static final String OLD_TOKEN_TERMINATOR = 
 			"=============== SYNAPSE NRGR LINK TOKEN BOUNDARY ===============";
+
+	private static final int V1_USER_ID_TOKEN_INDEX = 1;
+	private static final int V1_AR_ID_TOKEN_INDEX = 2;
+	private static final int V1_TIMESTAMP_TOKEN_INDEX = 3;
+	private static final int V1_HMAC_TOKEN_INDEX = 4;
+
+	private static final int V2_LABEL_TOKEN_INDEX = 1;
+	private static final int V2_USER_ID_TOKEN_INDEX = 2;
+	private static final int V2_APPLICATION_TEAM_ID_TOKEN_INDEX = 3;
+	private static final int V2_AR_ID_TOKEN_INDEX = 4;
+	private static final int V2_MR_EXPIRATION_TOKEN_INDEX = 5;
+	private static final int V2_TIMESTAMP_TOKEN_INDEX = 6;
+	private static final int V2_HMAC_TOKEN_INDEX = 7;
+	
+	private static final long MILLISEC_PER_DAY = 1000*3600*24L;
 
 	private static List<Long> arIdsFromArString(String accessRequirementIdString) {
 		List<Long> accessRequirementIds = new ArrayList<Long>();
@@ -109,70 +125,76 @@ public class TokenUtil {
 		}
 	}
 	
-	private static final int V1_USER_ID_TOKEN_INDEX = 1;
-	private static final int V1_AR_ID_TOKEN_INDEX = 2;
-	private static final int V1_TIMESTAMP_TOKEN_INDEX = 3;
-	private static final int V1_HMAC_TOKEN_INDEX = 4;
-
-	private static final int V2_LABEL_TOKEN_INDEX = 1;
-	private static final int V2_USER_ID_TOKEN_INDEX = 2;
-	private static final int V2_APPLICATION_TEAM_ID_TOKEN_INDEX = 3;
-	private static final int V2_AR_ID_TOKEN_INDEX = 4;
-	private static final int V2_MR_EXPIRATION_TOKEN_INDEX = 5;
-	private static final int V2_TIMESTAMP_TOKEN_INDEX = 6;
-	private static final int V2_HMAC_TOKEN_INDEX = 7;
-
 	/*
 	 * The input could be either a serialized MimeMessage or just a plain file containing
 	 * one or more tokens.
 	 */
-	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, long now) throws IOException {
+	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, Map<String,DatasetSettings> settings, long now) throws IOException {
 		// first, just treat the input stream as a plain file
-		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
-		result.addAll(parseTokensFromString(new String(in), now));
+		Set<TokenAnalysisResult> tarList = new HashSet<TokenAnalysisResult>();
+		tarList.addAll(parseTokensFromString(new String(in)));
 		// now treat it as a serialized message
 		// we may find the same tokens, or we may find ones not previously found
 		// (e.g. if they were in an encoded attachment)
 		// since the result is a Set, any repeats will be eliminated.
 		try {
 			MimeMessage message = MessageUtil.readMessageFromInputStream(new ByteArrayInputStream(in));
-			result.addAll(parseTokensFromMessageContent(message.getContent(), now));
+			tarList.addAll(parseTokensFromMessageContent(message.getContent()));
 		} catch (MessagingException e) {
 			// this is the case if the content is not a serialized message
 		}
+		
+		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
+		
+		// check for expired tokens
+		for (TokenAnalysisResult tar : tarList) {
+			if (tar.isValid()) {
+				String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
+				DatasetSettings ds = settings.get(applicationTeamId);
+				long tokenTimeoutMillis = ds.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
+				if (tar.getTokenContent().getTimestamp().getTime()+tokenTimeoutMillis<now) {
+					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process."));
+				} else {
+					result.add(tar);
+				}
+			} else {
+				result.add(tar);
+			}
+		}
+		
 		return result;
 	}
 
 	/*
 	 * This function accommodates Multiparts within Multiparts by using recursion
 	 */
-	private static Set<TokenAnalysisResult> parseTokensFromMessageContent(Object content, long now) throws IOException, MessagingException {
+	private static Set<TokenAnalysisResult> parseTokensFromMessageContent(Object content) throws IOException, MessagingException {
 		if (content instanceof String) {
-			return parseTokensFromString((String)content, now);
+			return parseTokensFromString((String)content);
 		} else if (content instanceof InputStream) {
 			InputStream is = (InputStream)content;
 			String s = new String(IOUtils.toByteArray(is));
-			return parseTokensFromString(s, now);
+			return parseTokensFromString(s);
 		} else if (content instanceof MimeMultipart) {
 			Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 			MimeMultipart mmp = (MimeMultipart) content;
 			for (int i=0; i<mmp.getCount(); i++) {
 				BodyPart bodyPart = mmp.getBodyPart(i);
-				result.addAll(parseTokensFromMessageContent(bodyPart.getContent(), now));
+				result.addAll(parseTokensFromMessageContent(bodyPart.getContent()));
 			}
 			return result;
 		} else if (content instanceof MimeMessage) {
 			MimeMessage mimeMessage = (MimeMessage) content;
-			return parseTokensFromMessageContent(mimeMessage.getContent(), now);
+			return parseTokensFromMessageContent(mimeMessage.getContent());
 		} else {
 			throw new RuntimeException("Unexpected content type "+content.getClass());
 		}
 	}
 
-	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent, long now) throws IOException {
+	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent) throws IOException {
 		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
-		result.addAll(parseTokensFromString(messageContent, TOKEN_TERMINATOR, now));
-		result.addAll(parseTokensFromString(messageContent, OLD_TOKEN_TERMINATOR, now));
+		result.addAll(parseTokensFromString(messageContent, TOKEN_TERMINATOR));
+		result.addAll(parseTokensFromString(messageContent, OLD_TOKEN_TERMINATOR));
 		return result;
 	}
 		
@@ -180,7 +202,7 @@ public class TokenUtil {
 	 * Since a message may include the same content multiple times (e.g. as plain text
 	 * and html) we combine the extracted tokens in a Set to eliminate duplicates)
 	 */
-	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent, String tokenTerminator, long now) throws IOException {
+	private static Set<TokenAnalysisResult> parseTokensFromString(String messageContent, String tokenTerminator) throws IOException {
 		Set<TokenAnalysisResult> result = new HashSet<TokenAnalysisResult>();
 		int start = 0;
 		int leadingTerminator = messageContent.indexOf(tokenTerminator, start);
@@ -193,7 +215,7 @@ public class TokenUtil {
 				String tokenSubstring = messageContent.substring(tokenStart, trailingTerminator).trim();
 				// there was a case in which a line break was added to the HMAC. There shouldn't be line
 				// breaks (or any other white space, so we just remove it altogether
-				result.add(parseToken( tokenSubstring.replaceAll("\\s", ""), now));
+				result.add(parseToken( tokenSubstring.replaceAll("\\s", "")));
 				start = trailingTerminator+tokenTerminator.length();
 			}
 			leadingTerminator = messageContent.indexOf(tokenTerminator, start);
@@ -205,7 +227,7 @@ public class TokenUtil {
 		return new TokenAnalysisResult(null, false, userId, reason);
 	}
 	
-	public static TokenAnalysisResult parseToken(String token, long now) {
+	public static TokenAnalysisResult parseToken(String token) {
 		String[] tokenParts = token.split(REGEX_FOR_PART_SEPARATOR);
 		// handling of the token could put some garbage characters at the end of the string, 
 		// increasing the token pieces from 5 to 6
@@ -216,14 +238,14 @@ public class TokenUtil {
 			return createFailedTokenAnalysisResult(null, 
 				"Incorrectly formatted token found: "+Arrays.asList(tokenParts));
 		if (isV1Token) {
-			return parseV1Token(tokenParts, now);
+			return parseV1Token(tokenParts);
 		} else { // isV2Token
-			return parseV2Token(tokenParts, now);
+			return parseV2Token(tokenParts);
 		}
 	}
 	
 	// we pass in current time to facilitate testing
-	private static TokenAnalysisResult parseV1Token(String[] tokenParts, long now) {
+	private static TokenAnalysisResult parseV1Token(String[] tokenParts) {
 		Long userId = null;
 		try {
 			userId = Long.parseLong(tokenParts[V1_USER_ID_TOKEN_INDEX].trim());
@@ -240,10 +262,6 @@ public class TokenUtil {
 		} catch (NumberFormatException e) {
 			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in message.");
 		}
-		long tokenTimeout = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
-		if (epoch+tokenTimeout<now)
-			return createFailedTokenAnalysisResult(userId, "Message timestamp has expired. Applicant must reinitiate the approval process.");
-
 		List<Long> accessRequirementIds = null;
 		try {
 			accessRequirementIds = arIdsFromArString(accessRequirementIdString);
@@ -257,11 +275,12 @@ public class TokenUtil {
 						epochString));
 		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature.");
 		
-		return new TokenAnalysisResult(new TokenContent(userId, accessRequirementIds, new Date(epoch), null, null, null), true, userId, null);
+		return new TokenAnalysisResult(new TokenContent(userId, accessRequirementIds, new Date(epoch), 
+				null, getProperty("ORIGINAL_APPLICATION_TEAM_ID"), null), true, userId, null);
 	}
 	
 	// we pass in current time to facilitate testing
-	private static TokenAnalysisResult parseV2Token(String[] tokenParts, long now) {
+	private static TokenAnalysisResult parseV2Token(String[] tokenParts) {
 		Long userId = null;
 		try {
 			userId = Long.parseLong(tokenParts[V2_USER_ID_TOKEN_INDEX].trim());
@@ -282,9 +301,6 @@ public class TokenUtil {
 		} catch (NumberFormatException e) {
 			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in message.");
 		}
-		long tokenTimeout = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
-		if (epoch+tokenTimeout<now)
-			return createFailedTokenAnalysisResult(userId, "Message timestamp has expired. Applicant must reinitiate the approval process.");
 
 		List<Long> accessRequirementIds = null;
 		try {

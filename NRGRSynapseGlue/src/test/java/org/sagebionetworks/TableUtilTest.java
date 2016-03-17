@@ -21,7 +21,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.After;
@@ -43,6 +45,7 @@ public class TableUtilTest {
 	private SynapseClient synapseClient;
 	private TableEntity table;
 	private TableUtil tableUtil;
+	private TableEntity configTable;
 	
 	public static ColumnModel createColumn(String name, ColumnType columnType) {
 		ColumnModel c = new ColumnModel();
@@ -80,7 +83,25 @@ public class TableUtilTest {
 		table.setParentId(project.getId());
 		table = synapseClient.createEntity(table);
 		
-		tableUtil = new TableUtil(synapseClient, table.getId());
+		configTable = new TableEntity();
+		configTable.setName(UUID.randomUUID().toString());
+		columns = new ArrayList<ColumnModel>();
+    	columns.add(createColumn("applicationTeamId", ColumnType.INTEGER));
+    	columns.add(createColumn("accessRequirementIds", ColumnType.STRING));
+    	columns.add(createColumn("tokenLabel", ColumnType.STRING));
+    	columns.add(createColumn("dataDescriptor", ColumnType.STRING));
+    	columns.add(createColumn("tokenEmailSynapseId", ColumnType.ENTITYID));
+    	columns.add(createColumn("approvalEmailSynapseId", ColumnType.ENTITYID));
+    	columns.add(createColumn("tokenExpirationDays", ColumnType.INTEGER));
+    	columns.add(createColumn("originatingIpSubnet", ColumnType.STRING));
+        columns = synapseClient.createColumnModels(columns);
+    	columnIds = new ArrayList<String>();
+    	for (ColumnModel column : columns) columnIds.add(column.getId());
+		configTable.setColumnIds(columnIds);
+		configTable.setParentId(project.getId());
+		configTable = synapseClient.createEntity(configTable);
+		
+		tableUtil = new TableUtil(synapseClient, table.getId(), configTable.getId());
 	}
 	
 	@After
@@ -89,6 +110,38 @@ public class TableUtilTest {
     		synapseClient.deleteEntityById(project.getId());
     		project=null;
     	}
+	}
+	
+	@Test
+	public void testGetDatasetSettings() throws Exception {
+		DatasetSettings expected = new DatasetSettings();
+		Map<String, DatasetSettings> expectedMap = new HashMap<String, DatasetSettings>();
+		
+		// add rows
+		String[] columnNames = new String[] {"applicationTeamId", "accessRequirementIds", "tokenLabel", "dataDescriptor", "tokenEmailSynapseId", "approvalEmailSynapseId", "tokenExpirationDays", "originatingIpSubnet"};
+		List<SelectColumn> headers = tableUtil.createRowSetHeaders(configTable.getId(), columnNames);
+		RowSet rowSet = new RowSet();
+		List<Row> rows = new ArrayList<Row>();
+		rowSet.setHeaders(headers);
+		rowSet.setTableId(configTable.getId());
+		rowSet.setRows(rows);
+		Row row;
+
+		row = new Row(); row.setValues(Arrays.asList("111", "222,333", "foo", "bar", "syn101", "syn202", "100", "140.70.0.0/16")); 
+		rows.add(row);
+		expected.setApplicationTeamId("111");
+		expected.setAccessRequirementIds(Arrays.asList(new Long[]{222L,333L}));
+		expected.setTokenLabel("foo");
+		expected.setDataDescriptor("bar");
+		expected.setTokenEmailSynapseId("syn101");
+		expected.setApprovalEmailSynapseId("syn202");
+		expected.setTokenExpirationTimeDays(100);		
+		expected.setOriginatingIPsubnet("140.70.0.0/16");
+		expectedMap.put(expected.getApplicationTeamId(), expected);
+		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, configTable.getId());
+
+		Map<String,DatasetSettings> actual = tableUtil.getDatasetSettings();
+		assertEquals(expectedMap, actual);
 	}
 	
 	@Test

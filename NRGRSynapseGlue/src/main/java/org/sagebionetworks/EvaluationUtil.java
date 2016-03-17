@@ -1,7 +1,5 @@
 package org.sagebionetworks;
 
-import static org.sagebionetworks.Util.getProperty;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
