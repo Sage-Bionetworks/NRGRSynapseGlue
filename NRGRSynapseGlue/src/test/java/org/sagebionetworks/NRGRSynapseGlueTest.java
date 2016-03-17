@@ -30,8 +30,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.mail.Address;
@@ -54,8 +56,6 @@ import org.sagebionetworks.repo.model.MembershipRequest;
 import org.sagebionetworks.repo.model.UserProfile;
 import org.sagebionetworks.repo.model.annotation.StringAnnotation;
 import org.sagebionetworks.repo.model.message.MessageToUser;
-import org.sagebionetworks.repo.model.table.ColumnModel;
-import org.sagebionetworks.repo.model.table.ColumnType;
 import org.sagebionetworks.repo.model.table.Row;
 import org.sagebionetworks.repo.model.table.RowSet;
 import org.sagebionetworks.repo.model.table.SelectColumn;
@@ -80,9 +80,10 @@ public class NRGRSynapseGlueTest  {
 	NRGRSynapseGlue nrgrSynapseGlue;
 	
 	private static final String USER_ID = "111";
-	private static final String TEAM_ID = "3324934"; // taken from the SETTINGS property
-	private static final String TEAM_2_ID = "3334673"; // taken from the SETTINGS property
+	private static final String TEAM_ID = "3324934"; // taken from the configuration
+	private static final String TEAM_2_ID = "3334673"; // taken from the configuration
 	private static final long EXPIRES_ON = System.currentTimeMillis()+21081600000L;
+	private static final long MILLISEC_PER_DAY = 1000*3600*24L;
 	
 	private List<SubmissionBundle> submissionsToProcess;
 	private Submission submission;
@@ -104,6 +105,8 @@ public class NRGRSynapseGlueTest  {
 		UserProfile userProfile = new UserProfile();
 		userProfile.setOwnerId("000");
 		when(synapseClient.getMyProfile()).thenReturn(userProfile);
+		
+		when(tableUtil.getDatasetSettings()).thenReturn(createDatasetSettingsMap());
 	}
 
 	@Test
@@ -215,21 +218,43 @@ public class NRGRSynapseGlueTest  {
 		}
 	}
 	
+	private static DatasetSettings createDatasetSettings(String teamId, String datasetName) {
+		DatasetSettings datasetSettings = new DatasetSettings();
+		datasetSettings.setApplicationTeamId(teamId);
+		datasetSettings.setAccessRequirementIds(Collections.singletonList(999L));
+		datasetSettings.setApprovalEmailSynapseId("syn202");
+		datasetSettings.setDataDescriptor(datasetName);
+		datasetSettings.setOriginatingIPsubnet("156.40.0.0/16");
+		datasetSettings.setTokenEmailSynapseId("syn101");
+		datasetSettings.setTokenExpirationTimeDays(244);
+		datasetSettings.setTokenLabel(datasetName);
+		return datasetSettings;
+	}
+	
+	private static Map<String, DatasetSettings> createDatasetSettingsMap() {
+		Map<String, DatasetSettings> result = new HashMap<String, DatasetSettings>();
+		DatasetSettings ds = createDatasetSettings(TEAM_ID, "CommonMind");
+		result.put(ds.getApplicationTeamId(), ds);
+		ds = createDatasetSettings(TEAM_2_ID, "foo");
+		result.put(ds.getApplicationTeamId(), ds);
+		return result;
+	}
+	
 	@Test
 	public void testProcessReceivedSubmissions_ValidToken() throws Exception {
-		DatasetSettings datasetSettings = Util.getDatasetSettings().get(TEAM_ID);
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
 		long now = System.currentTimeMillis();
 		String token = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
 		File downloadedFile = createMessageWithToken(token);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 		
 		// method under test
-		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess);
+		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
 		assertEquals(SubmissionStatusEnum.CLOSED, submissionStatus.getStatus());
 		assertEquals(1, spr.getValidTokens().size());
-		TokenAnalysisResult tar = TokenUtil.parseToken(token, now);
+		TokenAnalysisResult tar = TokenUtil.parseToken(token);
 		assertEquals(tar.getTokenContent(), spr.getValidTokens().iterator().next());
 		assertTrue(spr.getMessagesToSender().isEmpty());
 		
@@ -241,7 +266,7 @@ public class NRGRSynapseGlueTest  {
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 
 		// method under test
-		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess);
+		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
 		assertEquals(SubmissionStatusEnum.REJECTED, submissionStatus.getStatus());
@@ -258,14 +283,17 @@ public class NRGRSynapseGlueTest  {
 	
 	@Test
 	public void testProcessReceivedSubmissions_MissingXOriginatingIPHeader() throws Exception {
-		File downloadedFile = createTempFileWithContent("NOT A VALID TOKEN");
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
+		long now = System.currentTimeMillis();
+		String token = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
+		File downloadedFile = createMessageWithToken(token);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 
 		// method under test
-		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess);
+		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
-		assertEquals(SubmissionStatusEnum.REJECTED, submissionStatus.getStatus());
+		assertEquals(SubmissionStatusEnum.CLOSED, submissionStatus.getStatus());
 		StringAnnotation sa = submissionStatus.getAnnotations().getStringAnnos().get(0);
 		assertEquals("rejectionReason", sa.getKey());
 		String expectedErrorMessage = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
@@ -279,21 +307,21 @@ public class NRGRSynapseGlueTest  {
 	
 	@Test
 	public void testProcessReceivedSubmissions_OneValidAndOneInvalid() throws Exception {
-		DatasetSettings datasetSettings = Util.getDatasetSettings().get(TEAM_ID);
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
 		long now = System.currentTimeMillis();
 		String validToken = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
-		long tokenExpiration = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
+		long tokenExpiration = datasetSettings.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
 		String outdatedToken = TokenUtil.createToken(USER_ID, now-tokenExpiration-1000L, datasetSettings, now+1000L);
 		File downloadedFile = createMessageWithToken(validToken+"\n"+outdatedToken);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 		
 		// method under test
-		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess);
+		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
 		assertEquals(Collections.singletonList(submissionStatus), spr.getProcessedSubmissions());
 		assertEquals(SubmissionStatusEnum.CLOSED, submissionStatus.getStatus());
 		assertEquals(1, spr.getValidTokens().size());
-		TokenAnalysisResult tar = TokenUtil.parseToken(validToken, now);
+		TokenAnalysisResult tar = TokenUtil.parseToken(validToken);
 		assertEquals(tar.getTokenContent(), spr.getValidTokens().iterator().next());
 		assertEquals(1, spr.getMessagesToSender().size());
 		MimeMessageAndReason mmr = spr.getMessagesToSender().get(0);
@@ -307,10 +335,10 @@ public class NRGRSynapseGlueTest  {
 	public void testApproveApplicants() throws Exception {
 		when(evaluationUtil.getReceivedSubmissions(anyString())).thenReturn(submissionsToProcess);
 		// let's have one valid and one invalid token
-		DatasetSettings datasetSettings = Util.getDatasetSettings().get(TEAM_ID);
+		DatasetSettings datasetSettings = createDatasetSettings(TEAM_ID, "foo");
 		long now = System.currentTimeMillis();
 		String validToken = TokenUtil.createToken(USER_ID, now, datasetSettings, now+1000L);
-		long tokenExpiration = Long.parseLong(getProperty("TOKEN_EXPIRATION_TIME_MILLIS"));
+		long tokenExpiration = datasetSettings.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
 		String outdatedToken = TokenUtil.createToken(USER_ID, now-tokenExpiration-1000L, datasetSettings, now+1000L);
 		File downloadedFile = createMessageWithToken(validToken+"\n"+outdatedToken);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);

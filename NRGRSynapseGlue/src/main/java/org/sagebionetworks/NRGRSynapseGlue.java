@@ -137,7 +137,7 @@ public class NRGRSynapseGlue {
 	public void processNewApplicants() throws Exception {
 		List<Row> applicantsProcessed = new ArrayList<Row>();
 		long now = System.currentTimeMillis();
-		for (DatasetSettings datasetSettings : Util.getDatasetSettings().values()) {
+		for (DatasetSettings datasetSettings : tableUtil.getDatasetSettings().values()) {
 			// process each data set
 			long total = Integer.MAX_VALUE;
 			for (long offset=0; offset<total; offset+=PAGE_SIZE) {
@@ -226,7 +226,26 @@ public class NRGRSynapseGlue {
 		return tms.getIsMember();
 	}
 	
-	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess) {
+	/*
+	 * return the list of required IP originating subnets (if any) required by the valid tokens in the
+	 * given tokenAnalysisResults.  In practice the returned list should have size zero or one, but theoretically
+	 * it may have more than one.
+	 */
+	Set<String> getRequiredIPOriginatingSubnet(Set<TokenAnalysisResult> tokenAnalysisResults, Map<String,DatasetSettings> settings) {
+		Set<String> result = new HashSet<String>();
+		for (TokenAnalysisResult tar : tokenAnalysisResults) {
+			if(tar.isValid()) {
+				String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
+				DatasetSettings ds = settings.get(applicationTeamId);
+				if (ds.getOriginatingIPsubnet()!=null && ds.getOriginatingIPsubnet().length()>0) {
+					result.add(ds.getOriginatingIPsubnet());
+				}
+			}
+		}
+		return result;
+	}
+	
+	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess, Map<String,DatasetSettings> settings) {
 		String myOwnSnapseId = null;
 		SubmissionProcessingResult result = new SubmissionProcessingResult();
 		for (SubmissionBundle bundle : submissionsToProcess) {
@@ -244,21 +263,10 @@ public class NRGRSynapseGlue {
 				if (myOwnSnapseId==null) {
 					myOwnSnapseId = synapseClient.getMyProfile().getOwnerId();
 				}
-				if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
-					String originatingIpSubnet = getProperty("ORIGINATING_IP_SUBNET", /*nullIsOK*/true);
-					if (originatingIpSubnet!=null && originatingIpSubnet.length()>0 && 
-							!OriginValidator.isOriginatingIPInSubnet(message, originatingIpSubnet)) {
-						String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
-						status.setStatus(SubmissionStatusEnum.REJECTED);
-						EvaluationUtil.addRejectionReasonToStatus(status, reason);
-						result.addMessageToSender(new MimeMessageAndReason(message, reason));
-						continue; // done processing this bundle
-					}						
-				}
 				
 				fileIs = new FileInputStream(temp);
 				Set<TokenAnalysisResult> tokenAnalysisResults = 
-						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), System.currentTimeMillis());
+						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), settings, System.currentTimeMillis());
 				int validTokensInMessage = 0;
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
@@ -274,6 +282,14 @@ public class NRGRSynapseGlue {
 							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid token(s) "+
 							"were found in this message.";
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
+				}
+				Set<String> requiredIPOriginatingSubnets = getRequiredIPOriginatingSubnet(tokenAnalysisResults, settings);
+				if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId)) {
+					for (String requiredIOriginatingSubnet : requiredIPOriginatingSubnets) {
+						if (!OriginValidator.isOriginatingIPInSubnet(message, requiredIOriginatingSubnet)) {
+							throw new Exception("Message lacks X-Originating-IP header or is outside of the allowed subnet.");
+						}	
+					}
 				}
 			} catch (Exception e) {
 				status.setStatus(SubmissionStatusEnum.REJECTED);
@@ -296,16 +312,13 @@ public class NRGRSynapseGlue {
 	// Check for incoming email and if there is a valid attachment then approve them
 	public void approveApplicants() throws Exception {
 		String evaluationId = getProperty("EVALUATION_ID");
+		Map<String,DatasetSettings> settings = tableUtil.getDatasetSettings();
 
 		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
-		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions);
+		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
 		
 		// notify message sender about any bad messages (missing tokens, etc.)
 		sendRejectionsToMailSender(sprs.getMessagesToSender());
-		
-		for (TokenContent tc : sprs.getValidTokens()) {
-			if (tc.getApplicationTeamId()==null) tc.setApplicationTeamId(getProperty("ORIGINAL_APPLICATION_TEAM_ID"));
-		}
 		
 		// find those not already approved
 		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
@@ -317,7 +330,6 @@ public class NRGRSynapseGlue {
 		acceptTeamMembershipRequests(usersToApprove.getTokens());
 
 		// send the notifications
-		Map<String,DatasetSettings> settings = Util.getDatasetSettings();
 		sendApproveNotifications(usersToApprove.getTokens(), settings);
 		
 		// update the approval records in the Table

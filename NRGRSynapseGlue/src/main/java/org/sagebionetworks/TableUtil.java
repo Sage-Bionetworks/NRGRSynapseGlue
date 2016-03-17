@@ -1,10 +1,14 @@
 package org.sagebionetworks;
 
+import static org.sagebionetworks.Util.getProperty;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.sagebionetworks.client.SynapseClient;
@@ -38,12 +42,58 @@ public class TableUtil {
 	private SynapseClient synapseClient;
 	
 	private String tableId;
-	
 
 	public TableUtil(SynapseClient synapseClient, String tableId) {
 		this.synapseClient=synapseClient;
 		this.tableId=tableId;
 	}
+	
+	/*
+	 * return a map whose key is signup team ID and value is the collection of settings for that team
+	 */
+	public  Map<String,DatasetSettings> getDatasetSettings() throws SynapseException, InterruptedException {
+		String tableId = getProperty("CONFIGURATION_TABLE_ID");
+		Pair<List<SelectColumn>, RowSet> queryResult = executeQuery(
+				"SELECT * FROM "+tableId, tableId, Integer.MAX_VALUE);
+		
+		Map<String,DatasetSettings> result = new HashMap<String,DatasetSettings>();
+
+		for (Row row : queryResult.getSecond().getRows()) {
+			DatasetSettings setting = new DatasetSettings();
+			assert row.getValues().size()==queryResult.getSecond().getHeaders().size();
+			for (int i=0; i<queryResult.getSecond().getHeaders().size(); i++) {
+				SelectColumn sc = queryResult.getSecond().getHeaders().get(i);
+				String value = row.getValues().get(i);
+				if (sc.getName().equals("applicationTeamId")) {
+					setting.setApplicationTeamId(value);
+				} else if (sc.getName().equals("accessRequirementIds")) {
+					String[] arIdStrings = value.split(",");
+					List<Long> arIds = new ArrayList<Long>();
+					for (String arIdString : arIdStrings) arIds.add(Long.parseLong(arIdString));
+					setting.setAccessRequirementIds(arIds);
+				} else if (sc.getName().equals("tokenLabel")) {
+					setting.setTokenLabel(value);
+				} else if (sc.getName().equals("dataDescriptor")) {
+					setting.setDataDescriptor(value);
+				} else if (sc.getName().equals("tokenEmailSynapseId")) {
+					setting.setTokenEmailSynapseId(value);
+				} else if (sc.getName().equals("approvalEmailSynapseId")) {
+					setting.setApprovalEmailSynapseId(value);
+				} else if (sc.getName().equals("tokenExpirationDays")) {
+					setting.setTokenExpirationTimeDays(Integer.parseInt(value));
+				} else if (sc.getName().equals("originatingIpSubnet")) {
+					setting.setOriginatingIPsubnet(value);
+				} else {
+					throw new RuntimeException("Unexpected column "+sc.getName());
+				}
+			}
+			assert setting.getApplicationTeamId()!=null;
+			result.put(setting.getApplicationTeamId(), setting);
+		}
+		return result;
+	}
+		
+
 	
 	public List<MembershipRequest> getNewMembershipRequests(Collection<MembershipRequest> membershipRequests) throws SynapseException, InterruptedException {
 		if (membershipRequests.isEmpty()) return Collections.EMPTY_LIST;

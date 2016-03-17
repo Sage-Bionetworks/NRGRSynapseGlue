@@ -9,6 +9,8 @@ public class DatasetSettings {
 	private String tokenEmailSynapseId;
 	private String approvalEmailSynapseId;
 	private String dataDescriptor;
+	private Integer tokenExpirationTimeDays;
+	private String originatingIPsubnet;
 	
 	public String getApplicationTeamId() {
 		return applicationTeamId;
@@ -46,6 +48,19 @@ public class DatasetSettings {
 	public void setDataDescriptor(String dataDescriptor) {
 		this.dataDescriptor = dataDescriptor;
 	}
+	
+	public Integer getTokenExpirationTimeDays() {
+		return tokenExpirationTimeDays;
+	}
+	public void setTokenExpirationTimeDays(Integer tokenExpirationTimeDays) {
+		this.tokenExpirationTimeDays = tokenExpirationTimeDays;
+	}
+	public String getOriginatingIPsubnet() {
+		return originatingIPsubnet;
+	}
+	public void setOriginatingIPsubnet(String originatingIPsubnet) {
+		this.originatingIPsubnet = originatingIPsubnet;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -66,8 +81,16 @@ public class DatasetSettings {
 				+ ((dataDescriptor == null) ? 0 : dataDescriptor.hashCode());
 		result = prime
 				* result
+				+ ((originatingIPsubnet == null) ? 0 : originatingIPsubnet
+						.hashCode());
+		result = prime
+				* result
 				+ ((tokenEmailSynapseId == null) ? 0 : tokenEmailSynapseId
 						.hashCode());
+		result = prime
+				* result
+				+ ((tokenExpirationTimeDays == null) ? 0
+						: tokenExpirationTimeDays.hashCode());
 		result = prime * result
 				+ ((tokenLabel == null) ? 0 : tokenLabel.hashCode());
 		return result;
@@ -101,10 +124,21 @@ public class DatasetSettings {
 				return false;
 		} else if (!dataDescriptor.equals(other.dataDescriptor))
 			return false;
+		if (originatingIPsubnet == null) {
+			if (other.originatingIPsubnet != null)
+				return false;
+		} else if (!originatingIPsubnet.equals(other.originatingIPsubnet))
+			return false;
 		if (tokenEmailSynapseId == null) {
 			if (other.tokenEmailSynapseId != null)
 				return false;
 		} else if (!tokenEmailSynapseId.equals(other.tokenEmailSynapseId))
+			return false;
+		if (tokenExpirationTimeDays == null) {
+			if (other.tokenExpirationTimeDays != null)
+				return false;
+		} else if (!tokenExpirationTimeDays
+				.equals(other.tokenExpirationTimeDays))
 			return false;
 		if (tokenLabel == null) {
 			if (other.tokenLabel != null)
@@ -120,7 +154,8 @@ public class DatasetSettings {
 				+ ", tokenLabel=" + tokenLabel + ", tokenEmailSynapseId="
 				+ tokenEmailSynapseId + ", approvalEmailSynapseId="
 				+ approvalEmailSynapseId + ", dataDescriptor=" + dataDescriptor
-				+ "]";
+				+ ", tokenExpirationTimeDays=" + tokenExpirationTimeDays
+				+ ", originatingIPsubnet=" + originatingIPsubnet + "]";
 	}
 
 

@@ -52,39 +52,6 @@ public class Util {
 		return null;
 	}	
 
-	/*
-	 * return a map whose key is signup team ID and value is the collection of settings for that team
-	 */
-	public static Map<String,DatasetSettings> getDatasetSettings() {
-		return parseDatasetSetting(getProperty("SETTINGS"));
-	}
-		
-	
-	/*
-	 * return a map whose key is signup team ID and value is the collection of settings for that team
-	 */
-	public static Map<String,DatasetSettings> parseDatasetSetting(String s) {
-		JSONArray a = (JSONArray)JSONValue.parse(s);
-		Map<String,DatasetSettings> result = new HashMap<String,DatasetSettings>();
-		for (Object elem : a) {
-			JSONObject o = (JSONObject)elem;
-			DatasetSettings ds = new DatasetSettings();
-			String teamId = (String)o.get("applicationTeamId");
-			ds.setApplicationTeamId(teamId);
-			ds.setApprovalEmailSynapseId((String)o.get("approvalEmailSynapseId"));
-			ds.setDataDescriptor((String)o.get("dataDescriptor"));
-			ds.setTokenEmailSynapseId((String)o.get("tokenEmailSynapseId"));
-			ds.setTokenLabel((String)o.get("tokenLabel"));
-			List<Long> requirementIds = new ArrayList<Long>();
-			for (Object listElem : (JSONArray)o.get("accessRequirementIds")) {
-				requirementIds.add(Long.parseLong((String)listElem));
-			}
-			ds.setAccessRequirementIds(requirementIds);
-			result.put(teamId, ds);
-		}
-		return result;
-	}
-	
 	public static SynapseClient createSynapseClient() {
 		SynapseClientImpl scIntern = new SynapseClientImpl();
 		scIntern.setAuthEndpoint("https://repo-prod.prod.sagebase.org/auth/v1");
