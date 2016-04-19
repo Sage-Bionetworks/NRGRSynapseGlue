@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
 
 import javax.mail.Address;
 import javax.mail.Flags;
@@ -38,8 +39,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.URLName;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
@@ -49,7 +48,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -106,7 +104,7 @@ public class IMAPClient {
 	 */
 	public static Session getSession(String host,
 			int port,
-			boolean debug) throws HttpException, IOException, MessagingException {
+			boolean debug) throws Exception {
 		String oauthToken = getGmailOAuthAccessToken();
 
 		Properties props = new Properties();
@@ -169,7 +167,38 @@ public class IMAPClient {
 		}
 	}
 	
-	private static String getGmailOAuthAccessToken() throws HttpException, IOException {
+	private static final int MAX_TRIES = 5;
+	private static final long INITIAL_BACKOFF=500L;
+	
+	private static String withExpBackoff(Callable<String> callable) throws Exception {
+		long backoff=INITIAL_BACKOFF;
+		for (int i=0; i<MAX_TRIES; i++) {
+			try {
+				return callable.call();
+			} catch (Exception e) {
+				if (i>=MAX_TRIES-1) throw e;
+				System.out.println("Encountered error.  Will backoff and try again:\n\t"+e.getMessage());
+			}
+			try {
+				Thread.sleep(backoff);
+			} catch (InterruptedException e) {
+				// continue
+			}
+			backoff *= 2;
+		}
+		// shouldn't make it this far
+		throw new IllegalStateException();
+	}
+	
+	private static String getGmailOAuthAccessToken() throws Exception {
+		return withExpBackoff(new Callable<String>(){
+			@Override
+			public String call() throws Exception {
+				return getGmailOAuthAccessTokenIntern();
+			}});
+	}
+	
+	private static String getGmailOAuthAccessTokenIntern() throws HttpException, IOException {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		HttpPost post = new HttpPost("https://accounts.google.com/o/oauth2/token");
 		String clientId = getProperty("GOOGLE_OAUTH_CLIENT_ID");
@@ -183,6 +212,8 @@ public class IMAPClient {
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
 		post.setEntity(entity);
 		CloseableHttpResponse response = httpclient.execute(post);
+		int statusCode = response.getStatusLine().getStatusCode();
+		if (statusCode>=300) throw new RuntimeException("When trying to authenticate with Google: "+response.getStatusLine().toString());
 		try {
 			JSONObject obj=(JSONObject)JSONValue.parse(
 					new InputStreamReader(response.getEntity().getContent()));
