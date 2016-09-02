@@ -15,11 +15,14 @@ import org.json.simple.JSONValue;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.SynapseClientImpl;
 import org.sagebionetworks.client.SynapseProfileProxy;
+import org.sagebionetworks.utils.DefaultHttpClientSingleton;
+import org.sagebionetworks.utils.HttpClientHelper;
 
 public class Util {
+	private static final int TIMEOUT_MILLIS = 5 * 60 * 1000; // 5 minutes, as milliseconds   
+
 	private static Properties properties = null;
 
-	
 	private static void initProperties() {
 		if (properties!=null) return;
 		properties = new Properties();
@@ -52,14 +55,6 @@ public class Util {
 		return null;
 	}	
 
-	public static SynapseClient createSynapseClient() {
-		SynapseClientImpl scIntern = new SynapseClientImpl();
-		scIntern.setAuthEndpoint("https://repo-prod.prod.sagebase.org/auth/v1");
-		scIntern.setRepositoryEndpoint("https://repo-prod.prod.sagebase.org/repo/v1");
-		scIntern.setFileEndpoint("https://repo-prod.prod.sagebase.org/file/v1");
-		return SynapseProfileProxy.createProfileProxy(scIntern);
-	}
-	
 	public static Date cleanDate(Date d) {
 		if (d==null) return d;
 		if (d.getTime()==0L) return null;

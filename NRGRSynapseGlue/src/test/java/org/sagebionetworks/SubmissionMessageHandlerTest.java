@@ -28,7 +28,7 @@ public class SubmissionMessageHandlerTest {
 
     @Before
 	public void setup() throws Exception {
-		synapseClient = Util.createSynapseClient();
+		synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);

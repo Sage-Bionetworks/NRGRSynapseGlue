@@ -40,7 +40,7 @@ public class EvaluationUtilTest {
     
     // don't tag this with 'before' because it's not used by all tests
 	public void setup() throws Exception {
-		synapseClient = Util.createSynapseClient();
+		synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
 		synapseClient.login(adminUserName, adminPassword);
