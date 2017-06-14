@@ -136,7 +136,7 @@ public class TableUtilTest {
 		expected.setTokenEmailSynapseId("syn101");
 		expected.setApprovalEmailSynapseId("syn202");
 		expected.setTokenExpirationTimeDays(100);		
-		expected.setOriginatingIPsubnet("140.70.0.0/16");
+		expected.setOriginatingIPsubnets(Collections.singletonList("140.70.0.0/16"));
 		expectedMap.put(expected.getApplicationTeamId(), expected);
 		synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, configTable.getId());
 
@@ -303,5 +303,14 @@ public class TableUtilTest {
 		assertEquals(1, TableUtil.getColumnIndexForName(selectColumns, USER_NAME));
 	}
 
+	@Test
+	public void testGetSubnetsFromString() throws Exception {
+		List<String> expected = Arrays.asList(new String[] {"156.40.0.0/16","128.231.0.0/16"});
+		assertEquals(expected, TableUtil.getSubnetsFromString("156.40.0.0/16;128.231.0.0/16"));
+		assertEquals(expected, TableUtil.getSubnetsFromString("156.40.0.0/16,128.231.0.0/16"));
+		assertEquals(expected, TableUtil.getSubnetsFromString("156.40.0.0/16:128.231.0.0/16"));
+		assertEquals(new ArrayList<String>(), TableUtil.getSubnetsFromString(null));
+		assertEquals(new ArrayList<String>(), TableUtil.getSubnetsFromString(""));
+	}
 
 }

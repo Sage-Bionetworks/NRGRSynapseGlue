@@ -228,14 +228,13 @@ public class NRGRSynapseGlue {
 	}
 	
 	/*
-	 * return the list of required IP originating subnets (if any) required by the valid tokens in the
-	 * given tokenAnalysisResults.  In practice the returned list should have size zero or one, but theoretically
-	 * it may have more than one.
+	 * return the list of allowed IP originating subnets (if any) required by the valid tokens in the
+	 * given tokenAnalysisResults. If empty then any subnet is OK.
 	 */
-	String getRequiredIPOriginatingSubnet(TokenAnalysisResult tar, Map<String,DatasetSettings> settings) {
+	List<String> getAllowedIPOriginatingSubnets(TokenAnalysisResult tar, Map<String,DatasetSettings> settings) {
 		String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
 		DatasetSettings ds = settings.get(applicationTeamId);
-		return ds.getOriginatingIPsubnet();
+		return ds.getOriginatingIPsubnets();
 	}
 	
 	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess, Map<String,DatasetSettings> settings) {
@@ -265,10 +264,10 @@ public class NRGRSynapseGlue {
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
 						validTokensInMessage++;
-						String rios = getRequiredIPOriginatingSubnet(tar, settings);
+						List<String> rios = getAllowedIPOriginatingSubnets(tar, settings);
 						if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId) &&
-							!StringUtils.isEmpty(rios) && 
-							!OriginValidator.isOriginatingIPInSubnet(message, rios)) {
+							!rios.isEmpty() && 
+							!OriginValidator.isOriginatingIPInSubnets(message, rios)) {
 							messageViolatesSubnetRequirementTokenCount++;
 						} else {
 							result.addValidToken(tar.getTokenContent());
@@ -374,10 +373,20 @@ public class NRGRSynapseGlue {
 				MimeBodyPart reason = new MimeBodyPart();
 				reason.setContent(mmr.getReason()+"\n(original message below)\n\n", ContentType.TEXT_PLAIN.getMimeType());
 				content.addBodyPart(reason);
-				// add another part for the original message
-				MimeMultipart mimeMultipart = (MimeMultipart)mimeMessage.getContent();
-				for (int i=0; i<mimeMultipart.getCount(); i++) {
-					content.addBodyPart(mimeMultipart.getBodyPart(i));
+				Object messageContent = mimeMessage.getContent();
+				if (messageContent instanceof MimeMultipart) {
+					// add another part for the original message
+					MimeMultipart mimeMultipart = (MimeMultipart)messageContent;
+					for (int i=0; i<mimeMultipart.getCount(); i++) {
+						content.addBodyPart(mimeMultipart.getBodyPart(i));
+					}
+				} else if (messageContent instanceof String) {
+					String stringMessageContent = (String)messageContent;
+					MimeBodyPart bodyPart = new MimeBodyPart();
+					bodyPart.setContent(stringMessageContent, ContentType.TEXT_PLAIN.getMimeType());
+					content.addBodyPart(bodyPart);
+				} else {
+					throw new RuntimeException("Unexpcected type "+messageContent.getClass());
 				}
 				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
 			}

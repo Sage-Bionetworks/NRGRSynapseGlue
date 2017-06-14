@@ -10,7 +10,7 @@ public class DatasetSettings {
 	private String approvalEmailSynapseId;
 	private String dataDescriptor;
 	private Integer tokenExpirationTimeDays;
-	private String originatingIPsubnet;
+	private List<String> originatingIPsubnets;
 	
 	public String getApplicationTeamId() {
 		return applicationTeamId;
@@ -55,11 +55,12 @@ public class DatasetSettings {
 	public void setTokenExpirationTimeDays(Integer tokenExpirationTimeDays) {
 		this.tokenExpirationTimeDays = tokenExpirationTimeDays;
 	}
-	public String getOriginatingIPsubnet() {
-		return originatingIPsubnet;
+	
+	public List<String> getOriginatingIPsubnets() {
+		return originatingIPsubnets;
 	}
-	public void setOriginatingIPsubnet(String originatingIPsubnet) {
-		this.originatingIPsubnet = originatingIPsubnet;
+	public void setOriginatingIPsubnets(List<String> originatingIPsubnets) {
+		this.originatingIPsubnets = originatingIPsubnets;
 	}
 	@Override
 	public int hashCode() {
@@ -81,7 +82,7 @@ public class DatasetSettings {
 				+ ((dataDescriptor == null) ? 0 : dataDescriptor.hashCode());
 		result = prime
 				* result
-				+ ((originatingIPsubnet == null) ? 0 : originatingIPsubnet
+				+ ((originatingIPsubnets == null) ? 0 : originatingIPsubnets
 						.hashCode());
 		result = prime
 				* result
@@ -124,10 +125,10 @@ public class DatasetSettings {
 				return false;
 		} else if (!dataDescriptor.equals(other.dataDescriptor))
 			return false;
-		if (originatingIPsubnet == null) {
-			if (other.originatingIPsubnet != null)
+		if (originatingIPsubnets == null) {
+			if (other.originatingIPsubnets != null)
 				return false;
-		} else if (!originatingIPsubnet.equals(other.originatingIPsubnet))
+		} else if (!originatingIPsubnets.equals(other.originatingIPsubnets))
 			return false;
 		if (tokenEmailSynapseId == null) {
 			if (other.tokenEmailSynapseId != null)
@@ -155,7 +156,7 @@ public class DatasetSettings {
 				+ tokenEmailSynapseId + ", approvalEmailSynapseId="
 				+ approvalEmailSynapseId + ", dataDescriptor=" + dataDescriptor
 				+ ", tokenExpirationTimeDays=" + tokenExpirationTimeDays
-				+ ", originatingIPsubnet=" + originatingIPsubnet + "]";
+				+ ", originatingIPsubnets=" + originatingIPsubnets + "]";
 	}
 
 

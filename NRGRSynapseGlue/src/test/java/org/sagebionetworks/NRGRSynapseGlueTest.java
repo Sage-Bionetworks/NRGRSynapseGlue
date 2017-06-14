@@ -228,7 +228,7 @@ public class NRGRSynapseGlueTest  {
 		datasetSettings.setAccessRequirementIds(Collections.singletonList(999L));
 		datasetSettings.setApprovalEmailSynapseId("syn202");
 		datasetSettings.setDataDescriptor(datasetName);
-		datasetSettings.setOriginatingIPsubnet(originatingIpSubnet); //"156.40.0.0/16"
+		datasetSettings.setOriginatingIPsubnets(Collections.singletonList(originatingIpSubnet)); //"156.40.0.0/16"
 		datasetSettings.setTokenEmailSynapseId("syn101");
 		datasetSettings.setTokenExpirationTimeDays(244);
 		datasetSettings.setTokenLabel(datasetName);

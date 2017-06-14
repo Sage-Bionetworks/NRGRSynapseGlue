@@ -1,8 +1,7 @@
 package org.sagebionetworks;
 
-import static org.sagebionetworks.Util.getProperty;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -50,6 +49,11 @@ public class TableUtil {
 		this.configurationTableId=configurationTableId;
 	}
 	
+	public static List<String> getSubnetsFromString(String s) {
+		if (StringUtils.isEmpty(s)) return Collections.EMPTY_LIST;
+		return Arrays.asList(s.split("[,;:]"));
+	}
+	
 	/*
 	 * return a map whose key is signup team ID and value is the collection of settings for that team
 	 */
@@ -83,7 +87,8 @@ public class TableUtil {
 				} else if (sc.getName().equals("tokenExpirationDays")) {
 					setting.setTokenExpirationTimeDays(Integer.parseInt(value));
 				} else if (sc.getName().equals("originatingIpSubnet")) {
-					setting.setOriginatingIPsubnet(value);
+					List<String> subnets = getSubnetsFromString(value);
+					setting.setOriginatingIPsubnets(subnets);
 				} else {
 					throw new RuntimeException("Unexpected column "+sc.getName());
 				}

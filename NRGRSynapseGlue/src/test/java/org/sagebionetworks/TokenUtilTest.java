@@ -30,7 +30,7 @@ public class TokenUtilTest {
 		datasetSettings.setAccessRequirementIds(Collections.singletonList(999L));
 		datasetSettings.setApprovalEmailSynapseId("syn202");
 		datasetSettings.setDataDescriptor("bar");
-		datasetSettings.setOriginatingIPsubnet("156.40.0.0/16");
+		datasetSettings.setOriginatingIPsubnets(Collections.singletonList("156.40.0.0/16"));
 		datasetSettings.setTokenEmailSynapseId("syn101");
 		datasetSettings.setTokenExpirationTimeDays(244);
 		datasetSettings.setTokenLabel("foo");
@@ -268,6 +268,27 @@ public class TokenUtilTest {
 			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("fourValidOneInvalid.txt");
 			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), createDatasetSettingsMap(), currentTimeForTesting);
 			assertEquals(4, tars.size());
+			for (TokenAnalysisResult tar : tars) {
+				assertTrue(tar.getReason(), tar.isValid());
+			}
+		} finally {
+			is.close();
+		}
+
+	}
+
+
+	@Test
+	public void testNoValidToken() throws Exception {
+		InputStream is = null;
+		try {
+			is = MessageUtilTest.class.getClassLoader().getResourceAsStream("noValidToken.txt");
+			Map<String, DatasetSettings> map = createDatasetSettingsMap(); 
+			DatasetSettings ds = map.get(TEAM_ID);
+			ds.setApplicationTeamId("3336565");
+			map.put("3336565", ds);
+			Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(IOUtils.toByteArray(is), map, currentTimeForTesting);
+			assertEquals(1, tars.size());
 			for (TokenAnalysisResult tar : tars) {
 				assertTrue(tar.getReason(), tar.isValid());
 			}

@@ -1,5 +1,7 @@
 package org.sagebionetworks;
 
+import java.util.List;
+
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -10,15 +12,17 @@ public class OriginValidator {
 
 	private static final String X_ORIGINATING_IP = "X-Originating-IP";
 	
-	public static boolean isOriginatingIPInSubnet(MimeMessage msg, String subnetCidr) {
+	public static boolean isOriginatingIPInSubnets(MimeMessage msg, List<String> subnetCidrs) {
 		try {
-			SubnetUtils subnetUtils = new SubnetUtils(subnetCidr);
-			String[] headers = msg.getHeader(X_ORIGINATING_IP);
-			if (headers==null) return false;
-			for (String originatingIP : headers) {
-				if (originatingIP.startsWith("[")) originatingIP=originatingIP.substring(1);
-				if (originatingIP.endsWith("]")) originatingIP=originatingIP.substring(0, originatingIP.length()-1);
-				if (subnetUtils.getInfo().isInRange(originatingIP)) return true;
+			for (String subnetCidr : subnetCidrs) {
+				SubnetUtils subnetUtils = new SubnetUtils(subnetCidr);
+				String[] headers = msg.getHeader(X_ORIGINATING_IP);
+				if (headers==null) continue;
+				for (String originatingIP : headers) {
+					if (originatingIP.startsWith("[")) originatingIP=originatingIP.substring(1);
+					if (originatingIP.endsWith("]")) originatingIP=originatingIP.substring(0, originatingIP.length()-1);
+					if (subnetUtils.getInfo().isInRange(originatingIP)) return true;
+				}
 			}
 			return false;
 		} catch (MessagingException e) {

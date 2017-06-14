@@ -1,0 +1,280 @@
+Delivered-To: synapse@sagebase.org
+Received: by 10.74.48.8 with SMTP id q8csp351519oof;
+        Fri, 26 May 2017 10:06:54 -0700 (PDT)
+X-Received: by 10.176.65.2 with SMTP id j2mr1322520uad.65.1495818414553;
+        Fri, 26 May 2017 10:06:54 -0700 (PDT)
+ARC-Seal: i=3; a=rsa-sha256; t=1495818414; cv=pass;
+        d=google.com; s=arc-20160816;
+        b=Vb0xnEsDKBMGM6Te4qVueN5OcWVi0AqBteeVrvj8UXq8NKYiW5CpDlUpC58/d9zE4D
+         bY6D1JSsTpDf+KVFEJxdYx1BHh+QuDYUsJYtfVxjiZZ/VSTUl6lZMr2mmcTatk3kewGN
+         vIUQ0JeWDtcEQzWYpd47k7gNKQWhFuJ8whBIAwshHRLEmTBfuzcdu4k5UO0lTaM/wRYa
+         K4jbP0sM4gm5eRZz4eANjD8V2IB6mIk9Mlg4vS7DzxF6ml72GsfseCeoI7YfcXILl+Db
+         2dr2U+tj72o49Xuom1ptoIcvSe0Oe5KFlBpLVjAe+gpNfwTE+APSa+w9mCPXHiy37HnJ
+         Cziw==
+ARC-Message-Signature: i=3; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=list-unsubscribe:list-archive:list-help:list-post:list-id
+         :mailing-list:precedence:mime-version:content-language
+         :accept-language:message-id:date:thread-index:subject:to:from
+         :arc-authentication-results:arc-message-signature:dkim-signature
+         :arc-authentication-results:arc-message-signature
+         :arc-authentication-results;
+        bh=isrPkq9eYsW1jAS1uCpTrD7D2tNhOM1Qvrys2rFfdMU=;
+        b=CsCaTfLmYaSP69vmp8+DEp+PanFX037Nf4kOLsWWzkdUeAWuLurAq48+8cjjodIabK
+         oSM33njxONzmILasWlJGP65k/Q5/4HOsZmfCk/KI5cyiCZdB1LVb52Xt8yPJnmTaUwpR
+         YtnCRFCGzZtxIDcE23YNOfOnfX3WgRuEywh3JWzBFfrelXdF7M71FXC8BGs3XrjGb9y6
+         A9H8ZNYly4eZgbdBMJ5Xnb9R601oQJVA7at/1U4cE/lDXtEjJNVd6VmSNSmJNnP33GnC
+         aOaTYn7aLQ4fvzUlpGH+o/jIJu5b49f/E3mX1Ndbkv3iEzcNDz8LETGtco4FPZuetaf2
+         Jg6g==
+ARC-Authentication-Results: i=3; mx.google.com;
+       dkim=pass header.i=@sagebase-org.20150623.gappssmtp.com;
+       arc=pass (i=2 spf=pass spfdomain=movementdisorders.org);
+       spf=pass (google.com: domain of updrs-access+bncbdymjtodyearblwbuheqkgqe2ik4iea@sagebase.org designates 2607:f8b0:400c:c05::248 as permitted sender) smtp.mailfrom=updrs-access+bncBDYMJTODYEARBLWBUHEQKGQE2IK4IEA@sagebase.org
+Return-Path: <updrs-access+bncBDYMJTODYEARBLWBUHEQKGQE2IK4IEA@sagebase.org>
+Received: from mail-vk0-x248.google.com (mail-vk0-x248.google.com. [2607:f8b0:400c:c05::248])
+        by mx.google.com with ESMTPS id z123si304995vkf.161.2017.05.26.10.06.54
+        for <synapse@sagebase.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 26 May 2017 10:06:54 -0700 (PDT)
+Received-SPF: pass (google.com: domain of updrs-access+bncbdymjtodyearblwbuheqkgqe2ik4iea@sagebase.org designates 2607:f8b0:400c:c05::248 as permitted sender) client-ip=2607:f8b0:400c:c05::248;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@sagebase-org.20150623.gappssmtp.com;
+       arc=pass (i=2 spf=pass spfdomain=movementdisorders.org);
+       spf=pass (google.com: domain of updrs-access+bncbdymjtodyearblwbuheqkgqe2ik4iea@sagebase.org designates 2607:f8b0:400c:c05::248 as permitted sender) smtp.mailfrom=updrs-access+bncBDYMJTODYEARBLWBUHEQKGQE2IK4IEA@sagebase.org
+Received: by mail-vk0-x248.google.com with SMTP id y190sf3259629vkc.12
+        for <synapse@sagebase.org>; Fri, 26 May 2017 10:06:54 -0700 (PDT)
+ARC-Seal: i=2; a=rsa-sha256; t=1495818414; cv=pass;
+        d=google.com; s=arc-20160816;
+        b=vrQDln0BPMw+aiwiSLeGAudoMFqo3SLQHgpEZkLXAfYR3jf3n7W1KzpTNWNZ6KGVVh
+         4fdP4xWER4bKMIi8BRMsGfLFt9mwnpR5Uzm5cL7NSIXXUJZXgFbMSOwREr7v2EphsoQe
+         X6rYbSLgN8e+4nP3qjxD0V33FpDjxkvxzHrsDMR9Bt8R4UIsNnBvWmhBrBK/jKE68NrV
+         co9OOCTFQHRwruKiF4HUq022XfWO+SDfwpBr386hYmv+jCZTJTiBqfL+Eh0hEeyp85Wq
+         qFISb45F3sKiuOhoTqVbn03rW47hcyHzX1qIpioWJTNt77CvjhwJeS4UA/ZmZ2Ig0IzO
+         jCXA==
+ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=list-unsubscribe:list-archive:list-help:list-post:list-id
+         :mailing-list:precedence:mime-version:content-language
+         :accept-language:message-id:date:thread-index:subject:to:from
+         :arc-authentication-results:arc-message-signature:dkim-signature
+         :arc-authentication-results;
+        bh=isrPkq9eYsW1jAS1uCpTrD7D2tNhOM1Qvrys2rFfdMU=;
+        b=IROBrdiYqDjoJ5ZDf6x4TpXKOzrHDuPfyq1QQWJ87PcrCNCZaZIMn+ecJJO/5dEpMb
+         X0ZzsxFGL6S8LFeBWFjQyYSb9mba6j1AnoW7RGecdiqUvcJ3kuFRy7jszeuXAMsKY6ar
+         sC1N6Ok9YTjOX+/qJADbYkqksL5azYDcleEt8H2sP23tnxdKAnoXD4f0aMRQcTfxgsQj
+         aEpeCWwJdzXjdKUpdVRsHD6G8KPvkSD3yOg/+Rm8834AEg4+8omcCm4GPXCm34SJCywZ
+         KVaA+x6TmTJc73Oi9wKcv6+46cwPb3HTomU6C5Gy9lz9qGcVqkIEGIsUIAvrXz/W4nkQ
+         97yg==
+ARC-Authentication-Results: i=2; mx.google.com;
+       spf=pass (google.com: domain of nsaid@movementdisorders.org designates 207.250.11.25 as permitted sender) smtp.mailfrom=NSaid@movementdisorders.org
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sagebase-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:subject:thread-index:date:message-id:accept-language
+         :content-language:mime-version:x-original-sender
+         :x-original-authentication-results:precedence:mailing-list:list-id
+         :x-spam-checked-in-group:list-post:list-help:list-archive
+         :list-unsubscribe;
+        bh=isrPkq9eYsW1jAS1uCpTrD7D2tNhOM1Qvrys2rFfdMU=;
+        b=mqsM/fhm5dWFLGCtJbdqH/HxesiqXiAPOFX+kfA+ThGeO6febC2gT7mEWqOwR+K/fR
+         3N+MCtIH07xAwFBJY6oAz2QGbfRuh7Eaopc9Fpo4JTwR37P5UxzVi6T/AU9MZuGs2HH8
+         WIktGLs/Epc2AcY/srStalQGr4D8JwXTDuPIz6VW/1F5RswpAYSC/LorrFCRpQpdT/zh
+         BsiRDh+ChrAdHWWiaKtUvjOs8ox+k5lpUGlmLB61XPbS1lI/iz0hJkLrMMVC8E+PiZ9F
+         Wnmn5DMTUHajuk+QMcXSeptm2TXhy6rmgwyRGf5wo0yKHka/fm5COGj818PEB+Cg1YUn
+         aq0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:thread-index:date:message-id
+         :accept-language:content-language:mime-version:x-original-sender
+         :x-original-authentication-results:precedence:mailing-list:list-id
+         :x-spam-checked-in-group:list-post:list-help:list-archive
+         :list-unsubscribe;
+        bh=isrPkq9eYsW1jAS1uCpTrD7D2tNhOM1Qvrys2rFfdMU=;
+        b=FctHO9tk0C6PsapnAr/88OZPxWDrUm9teNPI6KzYpjuAnotr5QQ1rNA6z/sLXh2qrg
+         StHl7/vTCHK/9TWV4HReB82qP8/eYaHNiSBn/4/3cw5piB0tNxynapP+msJEO7rPWNzW
+         IQygIncBrfrWlpiVgD9iRvlfjW0cZTdsuVJY/moiJ6N12c/SUcOjKKJlwcbLgaIwsN/C
+         Ha2LtR5p/YTphPaA81itKQcahJP7TH9nmGZxfkmtPdhySFb0F5R+dRiuBPY4zjJ/cESh
+         Z19K1UEo2T7h2FVsQ0RaoLylV2IN7QqNEqPnr7aMDJ8GpwO/bR51vCFSf5RenmTIh5f2
+         kOsw==
+X-Gm-Message-State: AODbwcAh8piMSDkLlOfMz/xaf5YOVSKeMJlvuhjgkx99ebWI+hb2UGgb
+	ZDfDFIhEoQwA1h/ufPg=
+X-Received: by 10.159.36.37 with SMTP id 34mr1210580uaq.11.1495818414155;
+        Fri, 26 May 2017 10:06:54 -0700 (PDT)
+X-BeenThere: updrs-access@sagebase.org
+Received: by 10.107.170.154 with SMTP id g26ls1070616ioj.8.gmail; Fri, 26 May
+ 2017 10:06:53 -0700 (PDT)
+X-Received: by 10.36.237.72 with SMTP id r69mr3906926ith.98.1495818413892;
+        Fri, 26 May 2017 10:06:53 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1495818413; cv=none;
+        d=google.com; s=arc-20160816;
+        b=EsxUcQuXExzOWLtb1JSj1YTcUv9pJij8vpUNWpUPUIyZNk9v9/eNa+PwFTJgiK3HF8
+         RFo4xojfikCp1M+tkhnlCrWcmUIDPE7OvIBYXTLUTGdVXKb79ptNkd91FuoRvlUvigEm
+         ojKQRlq8hRiLp+oILgleTO/46r9oGO0is12zpVumacoVu1WV6YYrj7d77KP5dAxOKNfj
+         3KHIU3V4gtTELFuOIMLvaZy0/cdZmL1u18riCXBz9R1fNnPs76C+ml7pXruD4UE9aU4z
+         W8o7MmIfpP6Arh1MQQVlzM3T47JeoywE3ItxvQRj9zw0aM+cneWySIOZAIT8wrA7c/F8
+         ENSw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=mime-version:content-language:accept-language:message-id:date
+         :thread-index:subject:to:from:arc-authentication-results;
+        bh=IeURffwPPFPOFeqd9fzgDamsWJFHHNKJE2Cigi5QtYc=;
+        b=H9y4Fp+WMBCzYtmMtuP1xgCi2NZCIpD/6UlaRtXOSD5x1nKyqY224svDHGY0YL0/mN
+         VKx6Imt6urIZPFIxklaOLsPssavZg0gZdbfmFlm3Jon2i4Y3+URWIsQ6tA/4kuVKVLdj
+         2krlxnkDXCIshOR+iXjjV0BCI6sUJ+eetpVZkW+Hyi04/QsN+vzCipXVqtnmHYqdpnIF
+         Pdmm8B8hdE6k+EWOxgg+LADhi09opvDWktyuG3zJTXk1vAA2c8+AkFGLJft4bRkFzomn
+         RQRlmA3qC4rjFlXdNZaRYJaZSRGy94Eydq2+PjLpc8im6rB0lnx0PdhRJv2D4IrgqaQx
+         U6Rw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of nsaid@movementdisorders.org designates 207.250.11.25 as permitted sender) smtp.mailfrom=NSaid@movementdisorders.org
+Received: from semail3.edi.execinc.com (inbox.execinc.com. [207.250.11.25])
+        by mx.google.com with ESMTPS id g133si1326160ioe.243.2017.05.26.10.06.53
+        for <updrs-access@sagebase.org>
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Fri, 26 May 2017 10:06:53 -0700 (PDT)
+Received-SPF: pass (google.com: domain of nsaid@movementdisorders.org designates 207.250.11.25 as permitted sender) client-ip=207.250.11.25;
+Received: from SEMAIL3.edi.execinc.com ([fe80::b91d:daa:5c2c:62e2]) by
+ semail3.edi.execinc.com ([fe80::b91d:daa:5c2c:62e2%15]) with mapi id
+ 14.03.0123.003; Fri, 26 May 2017 12:06:53 -0500
+From: "Nura Said (MDS)" <NSaid@movementdisorders.org>
+To: "updrs-access@sagebase.org" <updrs-access@sagebase.org>
+Subject: 
+Thread-Index: AdLWQngiOhKJAAr3ToyLGCLBLUFvuw==
+Date: Fri, 26 May 2017 17:06:52 +0000
+Message-ID: <945B6B339FECA94A92079069DC75D814016D2F@semail3.edi.execinc.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [172.16.20.225]
+Content-Type: multipart/alternative;
+	boundary="_000_945B6B339FECA94A92079069DC75D814016D2Fsemail3ediexecinc_"
+MIME-Version: 1.0
+X-Original-Sender: nsaid@movementdisorders.org
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com:
+ domain of nsaid@movementdisorders.org designates 207.250.11.25 as permitted
+ sender) smtp.mailfrom=NSaid@movementdisorders.org
+Precedence: list
+Mailing-list: list updrs-access@sagebase.org; contact updrs-access+owners@sagebase.org
+List-ID: <updrs-access.sagebase.org>
+X-Spam-Checked-In-Group: updrs-access@sagebase.org
+X-Google-Group-Id: 1086412619632
+List-Post: <https://groups.google.com/a/sagebase.org/group/updrs-access/post>, <mailto:updrs-access@sagebase.org>
+List-Help: <https://support.google.com/a/sagebase.org/bin/topic.py?topic=25838>,
+ <mailto:updrs-access+help@sagebase.org>
+List-Archive: <https://groups.google.com/a/sagebase.org/group/updrs-access/>
+List-Unsubscribe: <mailto:googlegroups-manage+1086412619632+unsubscribe@googlegroups.com>,
+ <https://groups.google.com/a/sagebase.org/group/updrs-access/subscribe>
+
+--_000_945B6B339FECA94A92079069DC75D814016D2Fsemail3ediexecinc_
+Content-Type: text/plain; charset="UTF-8"
+
+=============== SYNAPSE LINK TOKEN BOUNDARY =============== |mPowerUPDRS|3320118|3336565|5549293|1503496407906|1487948527130|q+oC6wOJRebPXoisarbetjVOTsI=| =============== SYNAPSE LINK TOKEN BOUNDARY ===============
+
+-- 
+You received this message because you are subscribed to the Google Groups "UPDRS Access" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to updrs-access+unsubscribe@sagebase.org.
+To post to this group, send email to updrs-access@sagebase.org.
+To view this discussion on the web visit https://groups.google.com/a/sagebase.org/d/msgid/updrs-access/945B6B339FECA94A92079069DC75D814016D2F%40semail3.edi.execinc.com.
+
+--_000_945B6B339FECA94A92079069DC75D814016D2Fsemail3ediexecinc_
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
+//www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+<meta name=3D"Generator" content=3D"Microsoft Word 14 (filtered medium)">
+<style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+p.MsoPlainText, li.MsoPlainText, div.MsoPlainText
+	{mso-style-priority:99;
+	mso-style-link:"Plain Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+p.MsoAcetate, li.MsoAcetate, div.MsoAcetate
+	{mso-style-priority:99;
+	mso-style-link:"Balloon Text Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:8.0pt;
+	font-family:"Tahoma","sans-serif";}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+span.BalloonTextChar
+	{mso-style-name:"Balloon Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Balloon Text";
+	font-family:"Tahoma","sans-serif";}
+span.PlainTextChar
+	{mso-style-name:"Plain Text Char";
+	mso-style-priority:99;
+	mso-style-link:"Plain Text";
+	font-family:"Calibri","sans-serif";}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-family:"Calibri","sans-serif";}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]-->
+</head>
+<body lang=3D"EN-US" link=3D"blue" vlink=3D"purple">
+<div class=3D"WordSection1">
+<p class=3D"MsoPlainText">=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYN=
+APSE LINK TOKEN BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D |mPo=
+werUPDRS|3320118|3336565|5549293|1503496407906|1487948527130|q&#43;oC6wOJRe=
+bPXoisarbetjVOTsI=3D| =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D SYNAPSE=
+&nbsp; LINK TOKEN BOUNDARY =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D<o:=
+p></o:p></p>
+</div>
+</body>
+</html>
+
+<p></p>
+
+-- <br />
+You received this message because you are subscribed to the Google Groups &=
+quot;UPDRS Access&quot; group.<br />
+To unsubscribe from this group and stop receiving emails from it, send an e=
+mail to <a href=3D"mailto:updrs-access+unsubscribe@sagebase.org">updrs-acce=
+ss+unsubscribe@sagebase.org</a>.<br />
+To post to this group, send email to <a href=3D"mailto:updrs-access@sagebas=
+e.org">updrs-access@sagebase.org</a>.<br />
+To view this discussion on the web visit <a href=3D"https://groups.google.c=
+om/a/sagebase.org/d/msgid/updrs-access/945B6B339FECA94A92079069DC75D814016D=
+2F%40semail3.edi.execinc.com?utm_medium=3Demail&utm_source=3Dfooter">https:=
+//groups.google.com/a/sagebase.org/d/msgid/updrs-access/945B6B339FECA94A920=
+79069DC75D814016D2F%40semail3.edi.execinc.com</a>.<br />
+
+--_000_945B6B339FECA94A92079069DC75D814016D2Fsemail3ediexecinc_--
