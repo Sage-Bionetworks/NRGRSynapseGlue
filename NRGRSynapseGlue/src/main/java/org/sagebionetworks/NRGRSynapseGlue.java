@@ -385,6 +385,11 @@ public class NRGRSynapseGlue {
 					MimeBodyPart bodyPart = new MimeBodyPart();
 					bodyPart.setContent(stringMessageContent, ContentType.TEXT_PLAIN.getMimeType());
 					content.addBodyPart(bodyPart);
+				} else if (messageContent instanceof InputStream) {
+					String stringMessageContent = IOUtils.toString((InputStream)messageContent);
+					MimeBodyPart bodyPart = new MimeBodyPart();
+					bodyPart.setContent(stringMessageContent, ContentType.TEXT_PLAIN.getMimeType());
+					content.addBodyPart(bodyPart);
 				} else {
 					throw new RuntimeException("Unexpcected type "+messageContent.getClass());
 				}

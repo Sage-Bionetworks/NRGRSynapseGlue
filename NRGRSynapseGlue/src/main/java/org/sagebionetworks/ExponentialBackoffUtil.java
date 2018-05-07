@@ -17,6 +17,7 @@ public class ExponentialBackoffUtil {
 
 	private static int NUM_ATTEMPTS = 7;
 	private static long INITIAL_BACKOFF_MILLIS = 500L;
+	private static long NUM_503_RETRY_ATTEMPTS = 16; // 272 min (4h:32m)
 	private static long BACKOFF_MULTIPLIER = 2L;
 	
 	private static final List<Integer> NO_RETRY_STATUSES = Arrays.asList(
@@ -53,9 +54,11 @@ public class ExponentialBackoffUtil {
 		Throwable lastException=null;
 		int i = 0;
 		while (true) {
+			Integer statusCode = null;
 			try {
 				return executable.execute();
 			} catch (SynapseServerException e) {
+				statusCode=e.getStatusCode();
 				if (NO_RETRY_STATUSES.contains(e.getStatusCode())) {
 					log.severe("Will not retry: "+exceptionMessage(e)); throw e;					
 				}
@@ -64,7 +67,12 @@ public class ExponentialBackoffUtil {
 				lastException=e;
 			}
 			log.warning("Encountered exception on attempt "+i+": "+exceptionMessage(lastException));
-			if ((++i)>=NUM_ATTEMPTS) break;
+			i++;
+			if (statusCode!=null && HttpStatus.SC_SERVICE_UNAVAILABLE==statusCode) {
+				if (i>=NUM_503_RETRY_ATTEMPTS) break;				
+			} else {
+				if (i>=NUM_ATTEMPTS) break;
+			}
 			try {
 				Thread.sleep(backoff);
 			} catch(InterruptedException e) {
