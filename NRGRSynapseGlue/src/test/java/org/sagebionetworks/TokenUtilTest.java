@@ -176,13 +176,13 @@ public class TokenUtilTest {
 	@Test
 	public void testParseToken() throws Exception {
 		String token="=============== SYNAPSE LINK TOKEN BOUNDARY =============== \n" + 
-				"|PsychENCODE|3353199|3324934|5612415|null|1491351727162|E98kIwd+9N20nLGDbvdKz7B5pBk=| \n" + 
+				"|PsychENCODE|3353199|3324934|5612415|null|1491351727162|H7NrtAveIYGg21fa8t47qVCEy6I=| \n" + 
 				"=============== SYNAPSE LINK TOKEN BOUNDARY ===============";
 		Set<TokenAnalysisResult> tars = TokenUtil.
 				parseTokensFromInput(token.getBytes(), createDatasetSettingsMap(), currentTimeForTesting);
 		assertEquals(1, tars.size());
 		TokenAnalysisResult tar = tars.iterator().next();
-		checkTokenAnalysisResult(3353199L, 1491351727162L, Arrays.asList(new Long[]{3334673L}) , tar);
+		checkTokenAnalysisResult(3353199L, 1491351727162L, Arrays.asList(new Long[]{5612415L}) , tar);
 	}
 	
 	@Test
