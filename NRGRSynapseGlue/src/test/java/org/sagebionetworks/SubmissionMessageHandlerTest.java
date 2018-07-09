@@ -16,6 +16,7 @@ import org.sagebionetworks.evaluation.model.Evaluation;
 import org.sagebionetworks.evaluation.model.EvaluationStatus;
 import org.sagebionetworks.evaluation.model.SubmissionBundle;
 import org.sagebionetworks.repo.model.Project;
+import org.sagebionetworks.repo.model.auth.LoginRequest;
 
 public class SubmissionMessageHandlerTest {
 	private SynapseClient synapseClient;
@@ -27,21 +28,24 @@ public class SubmissionMessageHandlerTest {
     private Evaluation evaluation;
 
     @Before
-	public void setup() throws Exception {
-		synapseClient = SynapseClientFactory.createSynapseClient();
-		String adminUserName = getProperty("USERNAME");
-		String adminPassword = getProperty("PASSWORD");
-		synapseClient.login(adminUserName, adminPassword);
-    	project = new Project();
-    	project.setName(UUID.randomUUID().toString());
-    	project = synapseClient.createEntity(project);
-     	evaluation = new Evaluation();
-    	evaluation.setContentSource(project.getId());
-    	evaluation.setName(UUID.randomUUID().toString());
-    	evaluation.setStatus(EvaluationStatus.OPEN);
-    	evaluation = synapseClient.createEvaluation(evaluation);
+    public void setup() throws Exception {
+	    	synapseClient = SynapseClientFactory.createSynapseClient();
+	    	String adminUserName = getProperty("USERNAME");
+	    	String adminPassword = getProperty("PASSWORD");
+	    	LoginRequest loginRequest = new LoginRequest();
+	    	loginRequest.setUsername(adminUserName);
+	    	loginRequest.setPassword(adminPassword);
+	    	synapseClient.login(loginRequest);
+	    	project = new Project();
+	    	project.setName(UUID.randomUUID().toString());
+	    	project = synapseClient.createEntity(project);
+	    	evaluation = new Evaluation();
+	    	evaluation.setContentSource(project.getId());
+	    	evaluation.setName(UUID.randomUUID().toString());
+	    	evaluation.setStatus(EvaluationStatus.OPEN);
+	    	evaluation = synapseClient.createEvaluation(evaluation);
 
-	}
+    }
 	
 	@After
 	public void teardown() throws Exception {

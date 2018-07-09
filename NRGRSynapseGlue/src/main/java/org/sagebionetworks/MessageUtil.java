@@ -1,7 +1,9 @@
 package org.sagebionetworks;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -16,6 +18,7 @@ import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.repo.model.UserProfile;
+import org.sagebionetworks.repo.model.file.S3FileHandle;
 import org.sagebionetworks.repo.model.message.MessageToUser;
 import org.sagebionetworks.repo.model.message.multipart.Attachment;
 import org.sagebionetworks.repo.model.message.multipart.MessageBody;
@@ -48,7 +51,7 @@ public class MessageUtil {
 	
 	private static ContentType MESSAGE_JSON_CONTENT_TYPE = ContentType.APPLICATION_JSON;
 
-	public void sendMessage(MessageToUser messageToUser, String messageBodyContent, String messageAttachment) throws SynapseException {
+	public void sendMessage(MessageToUser messageToUser, String messageBodyContent, String messageAttachment) throws SynapseException, FileNotFoundException, IOException {
 		MessageBody messageBody = new MessageBody();
 		messageBody.setPlain(messageBodyContent);
 		Attachment attachment = new Attachment();
@@ -60,9 +63,19 @@ public class MessageUtil {
 		} catch (JSONObjectAdapterException e) {
 			throw new RuntimeException(e);
 		}
-		String fileHandleId = synapseClient.uploadToFileHandle(
-				messageBodyString.getBytes(MESSAGE_JSON_CONTENT_TYPE.getCharset()),
-				MESSAGE_JSON_CONTENT_TYPE);
+		byte[] messageBytes = messageBodyString.getBytes(MESSAGE_JSON_CONTENT_TYPE.getCharset());
+		InputStream is = new ByteArrayInputStream(messageBytes);
+		
+		S3FileHandle fileHandle;
+		try {
+			fileHandle = synapseClient.multipartUpload(is, (long)messageBytes.length, 
+				"message.json", MESSAGE_JSON_CONTENT_TYPE.toString(), 
+				null, false, false);
+		} finally {
+			is.close();
+		}
+
+		String fileHandleId = fileHandle.getId(); 
 		messageToUser.setFileHandleId(fileHandleId);
 
 		synapseClient.sendMessage(messageToUser);

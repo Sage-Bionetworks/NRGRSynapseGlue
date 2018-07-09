@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.repo.model.MembershipRequest;
 import org.sagebionetworks.repo.model.Project;
+import org.sagebionetworks.repo.model.auth.LoginRequest;
 import org.sagebionetworks.repo.model.table.ColumnModel;
 import org.sagebionetworks.repo.model.table.ColumnType;
 import org.sagebionetworks.repo.model.table.Row;
@@ -59,48 +60,51 @@ public class TableUtilTest {
 		synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
-		synapseClient.login(adminUserName, adminPassword);
-		
-    	project = new Project();
-    	project.setName(UUID.randomUUID().toString());
-    	project = synapseClient.createEntity(project);
-    	
-    	List<ColumnModel> columns = new ArrayList<ColumnModel>();
-    	columns.add(createColumn(USER_ID, ColumnType.INTEGER));
-    	columns.add(createColumn(APPLICATION_TEAM_ID, ColumnType.INTEGER));
-    	columns.add(createColumn(USER_NAME, ColumnType.STRING));
-    	columns.add(createColumn(FIRST_NAME, ColumnType.STRING));
-    	columns.add(createColumn(LAST_NAME, ColumnType.STRING));
-    	columns.add(createColumn(TOKEN_SENT_DATE, ColumnType.DATE));
-       	columns.add(createColumn(MEMBERSHIP_REQUEST_EXPIRATION_DATE, ColumnType.DATE));
-       	columns.add(createColumn(APPROVED_ON, ColumnType.DATE));
-        columns = synapseClient.createColumnModels(columns);
-    	List<String> columnIds = new ArrayList<String>();
-    	for (ColumnModel column : columns) columnIds.add(column.getId());
+		LoginRequest loginRequest = new LoginRequest();
+		loginRequest.setUsername(adminUserName);
+		loginRequest.setPassword(adminPassword);
+		synapseClient.login(loginRequest);
+
+		project = new Project();
+		project.setName(UUID.randomUUID().toString());
+		project = synapseClient.createEntity(project);
+
+		List<ColumnModel> columns = new ArrayList<ColumnModel>();
+		columns.add(createColumn(USER_ID, ColumnType.INTEGER));
+		columns.add(createColumn(APPLICATION_TEAM_ID, ColumnType.INTEGER));
+		columns.add(createColumn(USER_NAME, ColumnType.STRING));
+		columns.add(createColumn(FIRST_NAME, ColumnType.STRING));
+		columns.add(createColumn(LAST_NAME, ColumnType.STRING));
+		columns.add(createColumn(TOKEN_SENT_DATE, ColumnType.DATE));
+		columns.add(createColumn(MEMBERSHIP_REQUEST_EXPIRATION_DATE, ColumnType.DATE));
+		columns.add(createColumn(APPROVED_ON, ColumnType.DATE));
+		columns = synapseClient.createColumnModels(columns);
+		List<String> columnIds = new ArrayList<String>();
+		for (ColumnModel column : columns) columnIds.add(column.getId());
 		table = new TableEntity();
 		table.setName(UUID.randomUUID().toString());
 		table.setColumnIds(columnIds);
 		table.setParentId(project.getId());
 		table = synapseClient.createEntity(table);
-		
+
 		configTable = new TableEntity();
 		configTable.setName(UUID.randomUUID().toString());
 		columns = new ArrayList<ColumnModel>();
-    	columns.add(createColumn("applicationTeamId", ColumnType.INTEGER));
-    	columns.add(createColumn("accessRequirementIds", ColumnType.STRING));
-    	columns.add(createColumn("tokenLabel", ColumnType.STRING));
-    	columns.add(createColumn("dataDescriptor", ColumnType.STRING));
-    	columns.add(createColumn("tokenEmailSynapseId", ColumnType.ENTITYID));
-    	columns.add(createColumn("approvalEmailSynapseId", ColumnType.ENTITYID));
-    	columns.add(createColumn("tokenExpirationDays", ColumnType.INTEGER));
-    	columns.add(createColumn("originatingIpSubnet", ColumnType.STRING));
-        columns = synapseClient.createColumnModels(columns);
-    	columnIds = new ArrayList<String>();
-    	for (ColumnModel column : columns) columnIds.add(column.getId());
+		columns.add(createColumn("applicationTeamId", ColumnType.INTEGER));
+		columns.add(createColumn("accessRequirementIds", ColumnType.STRING));
+		columns.add(createColumn("tokenLabel", ColumnType.STRING));
+		columns.add(createColumn("dataDescriptor", ColumnType.STRING));
+		columns.add(createColumn("tokenEmailSynapseId", ColumnType.ENTITYID));
+		columns.add(createColumn("approvalEmailSynapseId", ColumnType.ENTITYID));
+		columns.add(createColumn("tokenExpirationDays", ColumnType.INTEGER));
+		columns.add(createColumn("originatingIpSubnet", ColumnType.STRING));
+		columns = synapseClient.createColumnModels(columns);
+		columnIds = new ArrayList<String>();
+		for (ColumnModel column : columns) columnIds.add(column.getId());
 		configTable.setColumnIds(columnIds);
 		configTable.setParentId(project.getId());
 		configTable = synapseClient.createEntity(configTable);
-		
+
 		tableUtil = new TableUtil(synapseClient, table.getId(), configTable.getId());
 	}
 	

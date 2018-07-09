@@ -35,7 +35,6 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
@@ -44,11 +43,12 @@ import org.sagebionetworks.evaluation.model.SubmissionBundle;
 import org.sagebionetworks.evaluation.model.SubmissionStatus;
 import org.sagebionetworks.evaluation.model.SubmissionStatusEnum;
 import org.sagebionetworks.reflection.model.PaginatedResults;
-import org.sagebionetworks.repo.model.ACTAccessApproval;
-import org.sagebionetworks.repo.model.ACTApprovalStatus;
+import org.sagebionetworks.repo.model.AccessApproval;
+import org.sagebionetworks.repo.model.ApprovalState;
 import org.sagebionetworks.repo.model.MembershipRequest;
 import org.sagebionetworks.repo.model.TeamMembershipStatus;
 import org.sagebionetworks.repo.model.UserProfile;
+import org.sagebionetworks.repo.model.auth.LoginRequest;
 import org.sagebionetworks.repo.model.message.MessageToUser;
 import org.sagebionetworks.repo.model.table.Row;
 import org.sagebionetworks.repo.model.table.RowSet;
@@ -89,7 +89,10 @@ public class NRGRSynapseGlue {
 		synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
-		synapseClient.login(adminUserName, adminPassword);
+		LoginRequest loginRequest = new LoginRequest();
+		loginRequest.setUsername(adminUserName);
+		loginRequest.setPassword(adminPassword);
+		synapseClient.login(loginRequest);
 		messageUtil = new MessageUtil(synapseClient);
 		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"), getProperty("CONFIGURATION_TABLE_ID"));
 		evaluationUtil = new EvaluationUtil(synapseClient);
@@ -404,10 +407,11 @@ public class NRGRSynapseGlue {
 		for (TokenContent tc: usersToApprove) {
 			long userId = tc.getUserId();
 			for (Long accessRequirementId : tc.getAccessRequirementIds()) {
-				ACTAccessApproval actAccessApproval = new ACTAccessApproval();
+				AccessApproval actAccessApproval = new AccessApproval();
 				actAccessApproval.setAccessorId(""+userId);
-				actAccessApproval.setApprovalStatus(ACTApprovalStatus.APPROVED);
+				actAccessApproval.setState(ApprovalState.APPROVED);
 				actAccessApproval.setRequirementId(accessRequirementId);
+				actAccessApproval.setRequirementVersion(0L);
 				synapseClient.createAccessApproval(actAccessApproval);
 			}
 		}
