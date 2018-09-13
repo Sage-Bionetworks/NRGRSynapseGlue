@@ -35,6 +35,7 @@ public class TableUtil {
 	public static final String TOKEN_SENT_DATE = "Date Email Sent";
 	public static final String MEMBERSHIP_REQUEST_EXPIRATION_DATE = "Date Membership Request Expires"; // new field
 	public static final String APPROVED_ON = "Date Approved/Rejected";
+	public static final String DATE_REVOKED = "Date Revoked";
 
 	public static final long TABLE_UPDATE_TIMEOUT = 10000L;
 
@@ -89,6 +90,8 @@ public class TableUtil {
 				} else if (sc.getName().equals("originatingIpSubnet")) {
 					List<String> subnets = getSubnetsFromString(value);
 					setting.setOriginatingIPsubnets(subnets);
+				} else if (sc.getName().equals("expiresAfterDays")) {
+					setting.setExpiresAfterDays(Integer.parseInt(value));
 				} else {
 					throw new RuntimeException("Unexpected column "+sc.getName());
 				}
@@ -98,8 +101,6 @@ public class TableUtil {
 		}
 		return result;
 	}
-		
-
 	
 	public List<MembershipRequest> getNewMembershipRequests(Collection<MembershipRequest> membershipRequests) throws SynapseException, InterruptedException {
 		if (membershipRequests.isEmpty()) return Collections.EMPTY_LIST;
@@ -204,6 +205,30 @@ public class TableUtil {
 		rowSet.setHeaders(queryResult.getFirst());
 		rowSet.setTableId(tableId);
 		return result;
+	}
+	
+	private static final long MILLIS_PER_DAY = 1000*3600*24;
+	
+	// query for users whose approval date is more than the given days prior to the present day
+	public Pair<List<SelectColumn>, RowSet> getExpiredAccess(DatasetSettings ds) throws Exception {
+			if (ds.getExpiresAfterDays()==null) throw new IllegalArgumentException();
+			long expirationThreshold = System.currentTimeMillis() - ds.getExpiresAfterDays()*MILLIS_PER_DAY;
+
+			StringBuilder sb = new StringBuilder("SELECT \""+USER_ID+"\",\""+DATE_REVOKED+"\" FROM ");
+			sb.append(tableId);
+			sb.append(" WHERE \"");
+			sb.append(APPLICATION_TEAM_ID);
+			sb.append("\" = ");
+			sb.append(ds.getApplicationTeamId());
+			sb.append(" and \"");
+			sb.append(APPROVED_ON);
+			sb.append("\"<");
+			sb.append(expirationThreshold);
+			sb.append(" and \"");
+			sb.append(DATE_REVOKED);
+			sb.append("\" is null");
+			String sql = sb.toString();
+			return executeQuery(sql, tableId, Integer.MAX_VALUE);
 	}
 
 	/*

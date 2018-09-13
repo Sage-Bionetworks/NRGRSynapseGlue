@@ -228,7 +228,7 @@ public class NRGRSynapseGlueTest  {
 		datasetSettings.setAccessRequirementIds(Collections.singletonList(999L));
 		datasetSettings.setApprovalEmailSynapseId("syn202");
 		datasetSettings.setDataDescriptor(datasetName);
-		datasetSettings.setOriginatingIPsubnets(Collections.singletonList(originatingIpSubnet)); //"156.40.0.0/16"
+		datasetSettings.setOriginatingIPsubnets(originatingIpSubnet==null?Collections.EMPTY_LIST:Collections.singletonList(originatingIpSubnet)); //"156.40.0.0/16"
 		datasetSettings.setTokenEmailSynapseId("syn101");
 		datasetSettings.setTokenExpirationTimeDays(244);
 		datasetSettings.setTokenLabel(datasetName);
@@ -373,7 +373,9 @@ public class NRGRSynapseGlueTest  {
 		
 		
 		// method under test
-		nrgrSynapseGlue.approveApplicants();
+		Map<String,DatasetSettings> dsMap = new HashMap<String,DatasetSettings>();
+		dsMap.put(TEAM_ID, datasetSettings);
+		nrgrSynapseGlue.approveApplicants(dsMap);
 		
 		// check results
 		ArgumentCaptor<MimeMultipart> captureMimeMultipart = ArgumentCaptor
@@ -382,7 +384,7 @@ public class NRGRSynapseGlueTest  {
 			sendMessage((Address)any(), (Address[])any(), anyString(), captureMimeMultipart.capture());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		captureMimeMultipart.getValue().writeTo(baos);
-		assertTrue(baos.toString().indexOf("1 valid token(s) and 1 invalid token(s) were found in this message.")>0);
+		assertTrue(baos.toString(), baos.toString().indexOf("1 valid token(s) and 1 invalid token(s) were found in this message.")>0);
 		
 		String tableId = getProperty("TABLE_ID");
 		ArgumentCaptor<RowSet> captureRowSet = ArgumentCaptor.forClass(RowSet.class);

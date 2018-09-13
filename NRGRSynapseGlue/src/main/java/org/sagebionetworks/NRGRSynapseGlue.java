@@ -1,6 +1,7 @@
 package org.sagebionetworks;
 
 import static org.sagebionetworks.TableUtil.APPLICATION_TEAM_ID;
+import static org.sagebionetworks.TableUtil.DATE_REVOKED;
 import static org.sagebionetworks.TableUtil.FIRST_NAME;
 import static org.sagebionetworks.TableUtil.LAST_NAME;
 import static org.sagebionetworks.TableUtil.MEMBERSHIP_REQUEST_EXPIRATION_DATE;
@@ -8,6 +9,7 @@ import static org.sagebionetworks.TableUtil.TABLE_UPDATE_TIMEOUT;
 import static org.sagebionetworks.TableUtil.TOKEN_SENT_DATE;
 import static org.sagebionetworks.TableUtil.USER_ID;
 import static org.sagebionetworks.TableUtil.USER_NAME;
+import static org.sagebionetworks.TableUtil.getColumnIndexForName;
 import static org.sagebionetworks.Util.getProperty;
 
 import java.io.File;
@@ -52,6 +54,7 @@ import org.sagebionetworks.repo.model.auth.LoginRequest;
 import org.sagebionetworks.repo.model.message.MessageToUser;
 import org.sagebionetworks.repo.model.table.Row;
 import org.sagebionetworks.repo.model.table.RowSet;
+import org.sagebionetworks.repo.model.table.SelectColumn;
 
 /*
  * This application is meant to help Synapse unlock data access based on approval in
@@ -119,7 +122,13 @@ public class NRGRSynapseGlue {
 		NRGRSynapseGlue sg = new NRGRSynapseGlue();
 		sg.processNewApplicants();
 		sg.checkForMail();
-		sg.approveApplicants();
+		Map<String,DatasetSettings> settings = sg.getDatasetSettings();
+		sg.approveApplicants(settings);
+		sg.removeExpiredAccess(settings);
+	}
+	
+	public Map<String,DatasetSettings> getDatasetSettings() throws Exception {
+		return tableUtil.getDatasetSettings();
 	}
 
 	/*
@@ -316,9 +325,8 @@ public class NRGRSynapseGlue {
 	}
 	
 	// Check for incoming email and if there is a valid attachment then approve them
-	public void approveApplicants() throws Exception {
+	public void approveApplicants(Map<String,DatasetSettings> settings) throws Exception {
 		String evaluationId = getProperty("EVALUATION_ID");
-		Map<String,DatasetSettings> settings = tableUtil.getDatasetSettings();
 
 		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
 		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
@@ -358,6 +366,48 @@ public class NRGRSynapseGlue {
 		System.out.println("Retrieved "+sprs.getProcessedSubmissions().size()+
 				" submissions for approval and accepted "+sprs.getValidTokens().size()+" users.");
 
+	}
+	
+	private static final boolean ENABLE_REVOCATION = false;
+	
+	public void removeExpiredAccess(Map<String,DatasetSettings> settings) throws Exception {
+		Long now = System.currentTimeMillis();
+		for (String approvalTeamId : settings.keySet()) {
+			DatasetSettings ds = settings.get(approvalTeamId);
+			if (ds.getExpiresAfterDays()!=null) {
+				Pair<List<SelectColumn>, RowSet> queryResult = tableUtil.getExpiredAccess(ds);
+				int userIdIndex = getColumnIndexForName(queryResult.getFirst(), USER_ID);
+				int dateRevokedIndex = getColumnIndexForName(queryResult.getFirst(), DATE_REVOKED);
+				RowSet rowSet = queryResult.getSecond();
+				for (Row row : rowSet.getRows()) {
+					List<String> values = row.getValues();
+					String userId = values.get(userIdIndex);
+					// revoke access approvals
+					for (long requirementId : ds.getAccessRequirementIds()) {
+						if (ENABLE_REVOCATION) {
+							synapseClient.revokeAccessApprovals(""+requirementId, userId);
+						} else {
+							System.out.println("Revoking access to requirement "+requirementId+" for user "+userId);
+						}
+					}
+					values.set(dateRevokedIndex, now.toString());
+					// remove from approval team
+					if (ENABLE_REVOCATION) {
+						synapseClient.removeTeamMember(approvalTeamId, userId);
+					} else {
+						System.out.println("Removing member "+userId+" from team "+approvalTeamId);
+					}
+				}
+				// update table
+				if (ENABLE_REVOCATION) {
+					synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, rowSet.getTableId());
+				} else {
+					System.out.println("Updating table to show revocation for "+rowSet.getRows().size()+" users.");
+				}
+			}
+			// TODO
+			// send notification
+		}
 	}
 	
 	private static final String REJECTION_SUBJECT = "error in token email";
