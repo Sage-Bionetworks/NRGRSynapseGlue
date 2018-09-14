@@ -91,7 +91,8 @@ public class TableUtil {
 					List<String> subnets = getSubnetsFromString(value);
 					setting.setOriginatingIPsubnets(subnets);
 				} else if (sc.getName().equals("expiresAfterDays")) {
-					setting.setExpiresAfterDays(Integer.parseInt(value));
+					if (!StringUtils.isEmpty(value))
+						setting.setExpiresAfterDays(Integer.parseInt(value));
 				} else {
 					throw new RuntimeException("Unexpected column "+sc.getName());
 				}
