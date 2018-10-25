@@ -8,6 +8,7 @@ public class DatasetSettings {
 	private String tokenLabel;
 	private String tokenEmailSynapseId;
 	private String approvalEmailSynapseId;
+	private String revocationEmailSynapseId;
 	private String dataDescriptor;
 	private Integer tokenExpirationTimeDays;
 	private List<String> originatingIPsubnets;
@@ -70,6 +71,13 @@ public class DatasetSettings {
 	public void setExpiresAfterDays(Integer expiresAfterDays) {
 		this.expiresAfterDays = expiresAfterDays;
 	}
+	
+	public String getRevocationEmailSynapseId() {
+		return revocationEmailSynapseId;
+	}
+	public void setRevocationEmailSynapseId(String revocationEmailSynapseId) {
+		this.revocationEmailSynapseId = revocationEmailSynapseId;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -80,6 +88,7 @@ public class DatasetSettings {
 		result = prime * result + ((dataDescriptor == null) ? 0 : dataDescriptor.hashCode());
 		result = prime * result + ((expiresAfterDays == null) ? 0 : expiresAfterDays.hashCode());
 		result = prime * result + ((originatingIPsubnets == null) ? 0 : originatingIPsubnets.hashCode());
+		result = prime * result + ((revocationEmailSynapseId == null) ? 0 : revocationEmailSynapseId.hashCode());
 		result = prime * result + ((tokenEmailSynapseId == null) ? 0 : tokenEmailSynapseId.hashCode());
 		result = prime * result + ((tokenExpirationTimeDays == null) ? 0 : tokenExpirationTimeDays.hashCode());
 		result = prime * result + ((tokenLabel == null) ? 0 : tokenLabel.hashCode());
@@ -124,6 +133,11 @@ public class DatasetSettings {
 				return false;
 		} else if (!originatingIPsubnets.equals(other.originatingIPsubnets))
 			return false;
+		if (revocationEmailSynapseId == null) {
+			if (other.revocationEmailSynapseId != null)
+				return false;
+		} else if (!revocationEmailSynapseId.equals(other.revocationEmailSynapseId))
+			return false;
 		if (tokenEmailSynapseId == null) {
 			if (other.tokenEmailSynapseId != null)
 				return false;
@@ -145,9 +159,10 @@ public class DatasetSettings {
 	public String toString() {
 		return "DatasetSettings [applicationTeamId=" + applicationTeamId + ", accessRequirementIds="
 				+ accessRequirementIds + ", tokenLabel=" + tokenLabel + ", tokenEmailSynapseId=" + tokenEmailSynapseId
-				+ ", approvalEmailSynapseId=" + approvalEmailSynapseId + ", dataDescriptor=" + dataDescriptor
-				+ ", tokenExpirationTimeDays=" + tokenExpirationTimeDays + ", originatingIPsubnets="
-				+ originatingIPsubnets + ", expiresAfterDays=" + expiresAfterDays + "]";
+				+ ", approvalEmailSynapseId=" + approvalEmailSynapseId + ", revocationEmailSynapseId="
+				+ revocationEmailSynapseId + ", dataDescriptor=" + dataDescriptor + ", tokenExpirationTimeDays="
+				+ tokenExpirationTimeDays + ", originatingIPsubnets=" + originatingIPsubnets + ", expiresAfterDays="
+				+ expiresAfterDays + "]";
 	}
 
 

@@ -368,7 +368,7 @@ public class NRGRSynapseGlue {
 
 	}
 	
-	private static final boolean ENABLE_REVOCATION = false;
+	private static final boolean ENABLE_REVOCATION = true;
 	
 	public void removeExpiredAccess(Map<String,DatasetSettings> settings) throws Exception {
 		Long now = System.currentTimeMillis();
@@ -379,9 +379,11 @@ public class NRGRSynapseGlue {
 				int userIdIndex = getColumnIndexForName(queryResult.getFirst(), USER_ID);
 				int dateRevokedIndex = getColumnIndexForName(queryResult.getFirst(), DATE_REVOKED);
 				RowSet rowSet = queryResult.getSecond();
+				List<String> usersToNotify = new ArrayList<String>();
 				for (Row row : rowSet.getRows()) {
 					List<String> values = row.getValues();
 					String userId = values.get(userIdIndex);
+					usersToNotify.add(userId);
 					// revoke access approvals
 					for (long requirementId : ds.getAccessRequirementIds()) {
 						if (ENABLE_REVOCATION) {
@@ -404,9 +406,12 @@ public class NRGRSynapseGlue {
 				} else {
 					System.out.println("Updating table to show revocation for "+rowSet.getRows().size()+" users.");
 				}
+				if (ENABLE_REVOCATION) {
+					sendRevocationNotifications(usersToNotify, ds.getRevocationEmailSynapseId());
+				} else {
+					System.out.println("Sending notifications to "+rowSet.getRows().size()+" users.");
+				}
 			}
-			// TODO
-			// send notification
 		}
 	}
 	
@@ -494,6 +499,26 @@ public class NRGRSynapseGlue {
 				synapseClient.sendStringMessage(message, 
 						messageUtil.createGenericMessage(userProfile, 
 								settings.getApprovalEmailSynapseId()));
+			} catch (SynapseException e) {
+				// if the message fails, just log it and go on to the next one
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void sendRevocationNotifications(Collection<String> userIds, String revocationTemplateId) throws IOException {
+		if (revocationTemplateId==null) throw new IllegalArgumentException("No email template.");
+		for (String userId : userIds) {
+			try {
+				UserProfile userProfile = synapseClient.getUserProfile(userId);
+				MessageToUser message = new MessageToUser();
+				message.setSubject("NRGR Data Access Revocation");
+				Set<String> recipients = new HashSet<String>(Collections.singleton(userId));
+				String ccRecipient = getProperty("CC_RECIPIENT", true);
+				if (ccRecipient!=null) recipients.add(ccRecipient);
+				message.setRecipients(recipients);
+				synapseClient.sendStringMessage(message, 
+						messageUtil.createGenericMessage(userProfile,revocationTemplateId));
 			} catch (SynapseException e) {
 				// if the message fails, just log it and go on to the next one
 				e.printStackTrace();

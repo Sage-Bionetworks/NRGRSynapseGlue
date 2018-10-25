@@ -85,6 +85,8 @@ public class TableUtil {
 					setting.setTokenEmailSynapseId(value);
 				} else if (sc.getName().equals("approvalEmailSynapseId")) {
 					setting.setApprovalEmailSynapseId(value);
+				} else if (sc.getName().equals("revocationEmailSynapseId")) {
+					setting.setRevocationEmailSynapseId(value);
 				} else if (sc.getName().equals("tokenExpirationDays")) {
 					setting.setTokenExpirationTimeDays(Integer.parseInt(value));
 				} else if (sc.getName().equals("originatingIpSubnet")) {
