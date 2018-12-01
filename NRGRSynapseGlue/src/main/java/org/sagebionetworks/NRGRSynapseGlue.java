@@ -311,6 +311,7 @@ public class NRGRSynapseGlue {
 						// This is weird edge case in which the message has the right subnet for some
 						// tokens, but not for others.
 						reason = "For "+messageViolatesSubnetRequirementTokenCount+" tokens, "+reason;
+						EvaluationUtil.addRejectionReasonToStatus(status, reason);
 						result.addMessageToSender(new MimeMessageAndReason(message, reason));
 					}
 				}
@@ -320,6 +321,7 @@ public class NRGRSynapseGlue {
 					for (TokenAnalysisResult tar : invalidTokens) {
 						reason += "\n\t"+tar.getReason();
 					}
+					EvaluationUtil.addRejectionReasonToStatus(status, reason);
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
 				}
 			} catch (Exception e) {
