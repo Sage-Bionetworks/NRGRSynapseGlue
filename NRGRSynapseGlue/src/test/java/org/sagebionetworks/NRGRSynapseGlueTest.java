@@ -108,24 +108,29 @@ public class NRGRSynapseGlueTest  {
 		
 		when(tableUtil.getDatasetSettings()).thenReturn(createDatasetSettingsMap());
 	}
+	
+	private static PaginatedResults<MembershipRequest> createSingletonMembershipRequestList(String teamId, String userId) {
+		PaginatedResults<MembershipRequest> pgs = new PaginatedResults<MembershipRequest>();
+		List<MembershipRequest> results = new ArrayList<MembershipRequest>();
+		MembershipRequest mr = new MembershipRequest();
+		mr.setTeamId(teamId);
+		mr.setUserId(userId);
+		mr.setExpiresOn(new Date(EXPIRES_ON));
+		results.add(mr);
+		pgs.setResults(results);
+		pgs.setTotalNumberOfResults(1);
+		return pgs;
+	}
 
 	@Test
 	public void testProcessNewApplicants() throws Exception {
 		// mock the receipt of one new membership request, from the first of two sign-up teams
 		{
-			PaginatedResults<MembershipRequest> pgs = new PaginatedResults<MembershipRequest>();
-			List<MembershipRequest> results = new ArrayList<MembershipRequest>();
-			MembershipRequest mr = new MembershipRequest();
-			mr.setTeamId(TEAM_ID);
-			mr.setUserId(USER_ID);
-			mr.setExpiresOn(new Date(EXPIRES_ON));
-			results.add(mr);
-			pgs.setResults(results);
-			pgs.setTotalNumberOfResults(1);
+			PaginatedResults<MembershipRequest> pgs = createSingletonMembershipRequestList(TEAM_ID, USER_ID);
 			when(synapseClient.getOpenMembershipRequests(eq(TEAM_ID), (String)isNull(), anyLong(), anyLong())).
 				thenReturn(pgs);
 			
-			when(tableUtil.getNewMembershipRequests(results)).thenReturn(results);
+			when(tableUtil.getNewMembershipRequests(pgs.getResults())).thenReturn(pgs.getResults());
 		}
 		{
 			PaginatedResults<MembershipRequest> pgs = new PaginatedResults<MembershipRequest>();
@@ -252,6 +257,12 @@ public class NRGRSynapseGlueTest  {
 		File downloadedFile = createMessageWithToken(token);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 		
+		{
+			PaginatedResults<MembershipRequest> pgs = createSingletonMembershipRequestList(TEAM_ID, USER_ID);
+			when(synapseClient.getOpenMembershipRequests(eq(TEAM_ID),eq(USER_ID), anyLong(), anyLong())).
+				thenReturn(pgs);
+		}
+		
 		// method under test
 		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
@@ -295,6 +306,12 @@ public class NRGRSynapseGlueTest  {
 		Map<String,DatasetSettings> dsMap = new HashMap<String,DatasetSettings>();
 		dsMap.put(datasetSettings.getApplicationTeamId(), datasetSettings);
 		
+		{
+			PaginatedResults<MembershipRequest> pgs = createSingletonMembershipRequestList(TEAM_ID, USER_ID);
+			when(synapseClient.getOpenMembershipRequests(eq(TEAM_ID),eq(USER_ID), anyLong(), anyLong())).
+				thenReturn(pgs);
+		}
+		
 		// method under test
 		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, dsMap);
 		
@@ -321,6 +338,12 @@ public class NRGRSynapseGlueTest  {
 		File downloadedFile = createMessageWithToken(validToken+"\n"+outdatedToken);
 		when(evaluationUtil.downloadSubmissionFile(submission)).thenReturn(downloadedFile);
 		
+		{
+			PaginatedResults<MembershipRequest> pgs = createSingletonMembershipRequestList(TEAM_ID, USER_ID);
+			when(synapseClient.getOpenMembershipRequests(eq(TEAM_ID),eq(USER_ID), anyLong(), anyLong())).
+				thenReturn(pgs);
+		}
+		
 		// method under test
 		SubmissionProcessingResult spr = nrgrSynapseGlue.processReceivedSubmissions(submissionsToProcess, createDatasetSettingsMap());
 		
@@ -331,7 +354,13 @@ public class NRGRSynapseGlueTest  {
 		assertEquals(tar.getTokenContent(), spr.getValidTokens().iterator().next());
 		assertEquals(1, spr.getMessagesToSender().size());
 		MimeMessageAndReason mmr = spr.getMessagesToSender().get(0);
-		String expectedErrorMessage = "1 valid token(s) and 1 invalid token(s) were found in this message.";
+		String expectedErrorMessage = "1 valid token(s) and 1 invalid token(s) were found in this message.\n" + 
+				"	Message timestamp has expired. Applicant must reinitiate the approval process: TokenContent [userId=111, accessRequirementIds=[999], timestamp="+
+				(new Date(now-tokenExpiration-1000L))
+				+", tokenLabel=foo, applicationTeamId=3324934, membershipRequestExpiration="+
+				(new Date(now+1000L))
+				+"]";
+		
 		assertEquals(expectedErrorMessage, mmr.getReason());
 		assertNotNull(mmr.getMimeMessage());
 		
@@ -371,6 +400,11 @@ public class NRGRSynapseGlueTest  {
 		ttlr.setRowSet(rowSet);
 		when(tableUtil.getRowsForAcceptedButNotYetApprovedUserIds((List<TokenContent>)any())).thenReturn(ttlr);
 		
+		{
+			PaginatedResults<MembershipRequest> pgs = createSingletonMembershipRequestList(TEAM_ID, USER_ID);
+			when(synapseClient.getOpenMembershipRequests(eq(TEAM_ID),eq(USER_ID), anyLong(), anyLong())).
+				thenReturn(pgs);
+		}
 		
 		// method under test
 		Map<String,DatasetSettings> dsMap = new HashMap<String,DatasetSettings>();

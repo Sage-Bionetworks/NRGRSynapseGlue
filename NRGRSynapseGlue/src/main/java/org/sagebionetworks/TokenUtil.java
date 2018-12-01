@@ -22,6 +22,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.sagebionetworks.client.exceptions.SynapseException;
 
 public class TokenUtil {
 	public static final String PART_SEPARATOR = "|";
@@ -129,7 +130,7 @@ public class TokenUtil {
 	 * The input could be either a serialized MimeMessage or just a plain file containing
 	 * one or more tokens.
 	 */
-	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, Map<String,DatasetSettings> settings, long now) throws IOException {
+	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, Map<String,DatasetSettings> settings, MembershipRequestChecker mrc, long now) throws IOException, SynapseException {
 		// first, just treat the input stream as a plain file
 		Set<TokenAnalysisResult> tarList = new HashSet<TokenAnalysisResult>();
 		tarList.addAll(parseTokensFromString(new String(in)));
@@ -152,8 +153,11 @@ public class TokenUtil {
 				String applicationTeamId = tar.getTokenContent().getApplicationTeamId();
 				DatasetSettings ds = settings.get(applicationTeamId);
 				long tokenTimeoutMillis = ds.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
-				if (tar.getTokenContent().getTimestamp().getTime()+tokenTimeoutMillis<now) {
-					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process."));
+				TokenContent tc = tar.getTokenContent();
+				if (tc.getTimestamp().getTime()+tokenTimeoutMillis<now) {
+					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process: "+tc));
+				} else if (!mrc.doesMembershipRequestExist(tar.getTokenContent().getApplicationTeamId(), ""+tar.getTokenContent().getUserId())) {
+					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Synapse is not excpecting approval token. Applicant must reinitiate the approval process: "+tc));
 				} else {
 					result.add(tar);
 				}
@@ -260,20 +264,20 @@ public class TokenUtil {
 		try {
 			epoch = Long.parseLong(epochString);
 		} catch (NumberFormatException e) {
-			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in message.");
+			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in token. "+Arrays.asList(tokenParts));
 		}
 		List<Long> accessRequirementIds = null;
 		try {
 			accessRequirementIds = arIdsFromArString(accessRequirementIdString);
 		} catch (NumberFormatException e) {
-			return createFailedTokenAnalysisResult(userId, "Bad Access Requirement ID list: "+accessRequirementIdString);
+			return createFailedTokenAnalysisResult(userId, "Bad Access Requirement ID list in token: "+accessRequirementIdString);
 		}
 		String recomputedHmac = hmac(
 				createV1UnsignedToken(
 						""+userId, 
 						accessRequirementIds, 
 						epochString));
-		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature.");
+		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature. "+Arrays.asList(tokenParts));
 		
 		return new TokenAnalysisResult(new TokenContent(userId, accessRequirementIds, new Date(epoch), 
 				null, getProperty("ORIGINAL_APPLICATION_TEAM_ID"), null), true, userId, null);
@@ -299,7 +303,7 @@ public class TokenUtil {
 		try {
 			epoch = Long.parseLong(epochString);
 		} catch (NumberFormatException e) {
-			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in message.");
+			return createFailedTokenAnalysisResult(userId, "Illegal time stamp in token. "+Arrays.asList(tokenParts));
 		}
 
 		List<Long> accessRequirementIds = null;
@@ -313,7 +317,7 @@ public class TokenUtil {
 		try {
 			mrExpiration = mrExpirationString==null||mrExpirationString.equalsIgnoreCase("null") ? null : Long.parseLong(mrExpirationString);
 		} catch (NumberFormatException e) {
-			return createFailedTokenAnalysisResult(userId, "Illegal membership request time stamp in message: "+mrExpirationString);
+			return createFailedTokenAnalysisResult(userId, "Illegal membership request time stamp in token: "+mrExpirationString);
 		}
 		String recomputedHmac = hmac(
 				createV2UnsignedToken(
@@ -321,7 +325,7 @@ public class TokenUtil {
 						Long.parseLong(epochString), 
 						settings, 
 						mrExpiration));
-		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Message has an invalid digital signature.");
+		if (!hmac.equals(recomputedHmac)) return createFailedTokenAnalysisResult(userId, "Token has an invalid digital signature. "+Arrays.asList(tokenParts));
 		TokenContent tokenContent = new TokenContent(userId, accessRequirementIds, new Date(epoch), 
 				settings.getTokenLabel(), settings.getApplicationTeamId(), mrExpiration==null?null:new Date(mrExpiration));
 		return new TokenAnalysisResult(tokenContent, true, userId, null);

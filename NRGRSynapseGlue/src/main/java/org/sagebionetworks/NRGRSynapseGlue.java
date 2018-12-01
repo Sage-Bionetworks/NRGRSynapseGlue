@@ -12,6 +12,7 @@ import static org.sagebionetworks.TableUtil.USER_NAME;
 import static org.sagebionetworks.TableUtil.getColumnIndexForName;
 import static org.sagebionetworks.Util.getProperty;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -80,7 +82,9 @@ public class NRGRSynapseGlue {
 	private TableUtil tableUtil;
 	private EvaluationUtil evaluationUtil;
 	private IMAPClient mailClient;
-
+	
+	private static final Logger logger =
+		      Logger.getLogger(NRGRSynapseGlue.class.getName());
 	/*
 	 * Parameters:
 	 * signupTeamId:  Users wishing to gain access create a membership request in this Team
@@ -249,6 +253,15 @@ public class NRGRSynapseGlue {
 		return ds.getOriginatingIPsubnets();
 	}
 	
+	
+	private final MembershipRequestChecker mrc = new MembershipRequestChecker() {
+		@Override
+		public boolean doesMembershipRequestExist(String teamId, String requesterId) throws SynapseException {
+			PaginatedResults<MembershipRequest> pgs = synapseClient.getOpenMembershipRequests(teamId, requesterId, 1, 0);
+			return pgs.getTotalNumberOfResults()>0;
+		}
+	};
+	
 	public SubmissionProcessingResult processReceivedSubmissions(List<SubmissionBundle> submissionsToProcess, Map<String,DatasetSettings> settings) {
 		String myOwnSnapseId = null;
 		SubmissionProcessingResult result = new SubmissionProcessingResult();
@@ -270,12 +283,14 @@ public class NRGRSynapseGlue {
 				
 				fileIs = new FileInputStream(temp);
 				Set<TokenAnalysisResult> tokenAnalysisResults = 
-						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), settings, System.currentTimeMillis());
-				int validTokensInMessage = 0;
+						TokenUtil.parseTokensFromInput(IOUtils.toByteArray(fileIs), settings, mrc, System.currentTimeMillis());
+				if (tokenAnalysisResults.isEmpty()) {
+					throw new Exception("No valid token found in file.");
+				}
 				int messageViolatesSubnetRequirementTokenCount = 0;
+				List<TokenAnalysisResult> invalidTokens = new ArrayList<TokenAnalysisResult>();
 				for (TokenAnalysisResult tar : tokenAnalysisResults) {
 					if(tar.isValid()) {
-						validTokensInMessage++;
 						List<String> rios = getAllowedIPOriginatingSubnets(tar, settings);
 						if (!canBypassMessageValidation(sub.getUserId(), myOwnSnapseId) &&
 							!rios.isEmpty() && 
@@ -284,11 +299,13 @@ public class NRGRSynapseGlue {
 						} else {
 							result.addValidToken(tar.getTokenContent());
 						}
+					} else {
+						invalidTokens.add(tar);
 					}
 				}
 				if (messageViolatesSubnetRequirementTokenCount>0) {
 					String reason = "Message lacks X-Originating-IP header or is outside of the allowed subnet.";
-					if (messageViolatesSubnetRequirementTokenCount==validTokensInMessage) {
+					if (result.getValidTokens().isEmpty()) {
 						throw new Exception(reason);
 					} else {
 						// This is weird edge case in which the message has the right subnet for some
@@ -297,13 +314,12 @@ public class NRGRSynapseGlue {
 						result.addMessageToSender(new MimeMessageAndReason(message, reason));
 					}
 				}
-				if (validTokensInMessage==0) {
-					throw new Exception("No valid token found in file.");
-				}
-				if (validTokensInMessage < tokenAnalysisResults.size()) {
-					String reason = ""+validTokensInMessage+" valid token(s) and "+
-							(tokenAnalysisResults.size()-validTokensInMessage)+" invalid token(s) "+
-							"were found in this message.";
+				if (!invalidTokens.isEmpty()) {
+					String reason = ""+result.getValidTokens().size()+" valid token(s) and "+
+							invalidTokens.size()+" invalid token(s) were found in this message.";
+					for (TokenAnalysisResult tar : invalidTokens) {
+						reason += "\n\t"+tar.getReason();
+					}
 					result.addMessageToSender(new MimeMessageAndReason(message, reason));
 				}
 			} catch (Exception e) {
@@ -329,6 +345,7 @@ public class NRGRSynapseGlue {
 		String evaluationId = getProperty("EVALUATION_ID");
 
 		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
+		
 		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
 		
 		// notify message sender about any bad messages (missing tokens, etc.)
@@ -452,6 +469,13 @@ public class NRGRSynapseGlue {
 					throw new RuntimeException("Unexpcected type "+messageContent.getClass());
 				}
 				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
+				
+				
+				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+					content.writeTo(baos);
+					logger.info("Sent this message back to token sender:\n"+baos);
+				}
+				
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
