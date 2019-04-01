@@ -421,7 +421,7 @@ public class NRGRSynapseGlue {
 				}
 				// update table
 				if (ENABLE_REVOCATION) {
-					synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, rowSet.getTableId());
+					if (!rowSet.getRows().isEmpty()) synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, rowSet.getTableId());
 				} else {
 					System.out.println("Updating table to show revocation for "+rowSet.getRows().size()+" users.");
 				}

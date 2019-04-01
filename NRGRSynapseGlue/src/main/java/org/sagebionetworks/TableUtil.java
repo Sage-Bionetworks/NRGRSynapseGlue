@@ -37,7 +37,7 @@ public class TableUtil {
 	public static final String APPROVED_ON = "Date Approved/Rejected";
 	public static final String DATE_REVOKED = "Date Revoked";
 
-	public static final long TABLE_UPDATE_TIMEOUT = 10000L;
+	public static final long TABLE_UPDATE_TIMEOUT = 100000L;
 
 	private SynapseClient synapseClient;
 	
