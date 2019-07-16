@@ -157,7 +157,7 @@ public class TokenUtil {
 				if (tc.getTimestamp().getTime()+tokenTimeoutMillis<now) {
 					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process: "+tc));
 				} else if (!mrc.doesMembershipRequestExist(tar.getTokenContent().getApplicationTeamId(), ""+tar.getTokenContent().getUserId())) {
-					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Synapse is not excpecting approval token. Applicant must reinitiate the approval process: "+tc));
+					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Synapse is not expecting approval token. Applicant must reinitiate the approval process: "+tc));
 				} else {
 					result.add(tar);
 				}

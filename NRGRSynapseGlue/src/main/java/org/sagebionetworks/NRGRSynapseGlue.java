@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.mail.Address;
+import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -436,6 +437,15 @@ public class NRGRSynapseGlue {
 	
 	private static final String REJECTION_SUBJECT = "error in token email";
 	
+	private static Address[] getMessageSender(MimeMessage mimeMessage) throws MessagingException {
+		List<Address> result = new ArrayList<Address>();
+		result.addAll(Arrays.asList(mimeMessage.getReplyTo()));
+		if (result.isEmpty()) {
+			result.addAll(Arrays.asList(mimeMessage.getFrom()));
+		}
+		return result.toArray(new Address[0]);
+	}
+	
 	/*
 	 * For any rejected emails, send an email *back* to the sender containing the reason.
 	 */
@@ -470,7 +480,7 @@ public class NRGRSynapseGlue {
 				} else {
 					throw new RuntimeException("Unexpcected type "+messageContent.getClass());
 				}
-				mailClient.sendMessage(notificationFrom, mimeMessage.getFrom(), REJECTION_SUBJECT, content);
+				mailClient.sendMessage(notificationFrom, getMessageSender(mimeMessage), REJECTION_SUBJECT, content);
 				
 				
 				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
