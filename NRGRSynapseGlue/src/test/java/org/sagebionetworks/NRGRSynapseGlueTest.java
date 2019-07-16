@@ -107,6 +107,10 @@ public class NRGRSynapseGlueTest  {
 		when(synapseClient.getMyProfile()).thenReturn(userProfile);
 		
 		when(tableUtil.getDatasetSettings()).thenReturn(createDatasetSettingsMap());
+		
+		System.setProperty("HMAC_SECRET_KEY", "foo");
+		System.setProperty("EVALUATION_ID", "101");
+		System.setProperty("TABLE_ID", "202");
 	}
 	
 	private static PaginatedResults<MembershipRequest> createSingletonMembershipRequestList(String teamId, String userId) {
@@ -181,7 +185,7 @@ public class NRGRSynapseGlueTest  {
 		ArgumentCaptor<RowSet> captureRowSet = ArgumentCaptor
 				.forClass(RowSet.class);
 		verify(synapseClient, times(1)).
-			appendRowsToTable(captureRowSet.capture(), eq(10000L), eq(getProperty("TABLE_ID")));
+			appendRowsToTable(captureRowSet.capture(), eq(100000L), eq(getProperty("TABLE_ID")));
 		RowSet rowSet = captureRowSet.getValue();
 		List<Row> rows = rowSet.getRows();
 		assertEquals(1, rows.size());

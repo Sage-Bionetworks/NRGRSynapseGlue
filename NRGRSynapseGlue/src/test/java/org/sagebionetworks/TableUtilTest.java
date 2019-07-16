@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +58,7 @@ public class TableUtilTest {
 	
 	@Before
 	public void setUp() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
@@ -118,6 +120,7 @@ public class TableUtilTest {
 	
 	@Test
 	public void testGetDatasetSettings() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		DatasetSettings expected = new DatasetSettings();
 		Map<String, DatasetSettings> expectedMap = new HashMap<String, DatasetSettings>();
 		
@@ -150,6 +153,7 @@ public class TableUtilTest {
 	
 	@Test
 	public void testCreateRowSetHeaders() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		String[] columnNames = new String[] {USER_ID, USER_NAME};
 		ColumnType[] columnTypes = new ColumnType[]{INTEGER, STRING};
 		List<SelectColumn> selectColumns = tableUtil.createRowSetHeaders(table.getId(), columnNames);
@@ -164,6 +168,7 @@ public class TableUtilTest {
 
 	@Test
 	public void testGetNewMembershipRequests() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		// add rows
 		String[] columnNames = new String[] {USER_ID, APPLICATION_TEAM_ID, MEMBERSHIP_REQUEST_EXPIRATION_DATE};
 		List<SelectColumn> headers = tableUtil.createRowSetHeaders(table.getId(), columnNames);
@@ -222,6 +227,7 @@ public class TableUtilTest {
 	
 	@Test
 	public void testGetRowsForAcceptedButNotYetApprovedUserIds() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		// add rows
 		String[] columnNames = new String[] {USER_ID, APPLICATION_TEAM_ID, MEMBERSHIP_REQUEST_EXPIRATION_DATE, APPROVED_ON};
 		List<SelectColumn> headers = tableUtil.createRowSetHeaders(table.getId(), columnNames);
@@ -301,6 +307,7 @@ public class TableUtilTest {
 	
 	@Test
 	public void testGetColumnIndexForName() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		String[] columnNames = new String[] {USER_ID, USER_NAME};
 		List<SelectColumn> selectColumns = tableUtil.createRowSetHeaders(table.getId(), columnNames);
 		assertEquals(0, TableUtil.getColumnIndexForName(selectColumns, USER_ID));
@@ -309,6 +316,7 @@ public class TableUtilTest {
 
 	@Test
 	public void testGetSubnetsFromString() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		List<String> expected = Arrays.asList(new String[] {"156.40.0.0/16","128.231.0.0/16"});
 		assertEquals(expected, TableUtil.getSubnetsFromString("156.40.0.0/16;128.231.0.0/16"));
 		assertEquals(expected, TableUtil.getSubnetsFromString("156.40.0.0/16,128.231.0.0/16"));

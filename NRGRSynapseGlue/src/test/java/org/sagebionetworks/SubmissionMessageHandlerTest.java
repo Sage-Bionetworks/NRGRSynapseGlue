@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.After;
 import org.junit.Before;
@@ -27,7 +28,6 @@ public class SubmissionMessageHandlerTest {
     private Project project;
     private Evaluation evaluation;
 
-    @Before
     public void setup() throws Exception {
 	    	synapseClient = SynapseClientFactory.createSynapseClient();
 	    	String adminUserName = getProperty("USERNAME");
@@ -60,6 +60,8 @@ public class SubmissionMessageHandlerTest {
 	
 	@Test
 	public void testSubmissionMesssageHandler() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
+		setup();
 		EvaluationUtil evaluationUtil = new EvaluationUtil(synapseClient);
 		List<SubmissionBundle> submissionBundles = evaluationUtil.getReceivedSubmissions(evaluation.getId());
 		assertEquals(0, submissionBundles.size());

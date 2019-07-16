@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.After;
 import org.junit.Test;
@@ -108,6 +109,7 @@ public class EvaluationUtilTest {
 
 	@Test
 	public void testGetReceivedSubmissions() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		setup();
 		createSubmission(evaluation.getId());
 		EvaluationUtil evaluationUtil = new EvaluationUtil(synapseClient);
@@ -135,6 +137,7 @@ public class EvaluationUtilTest {
 	
 	@Test
 	public void testUpdateSubmissionStatusBatch() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		setup();
 		createSubmission(evaluation.getId());
 		EvaluationUtil evaluationUtil = new EvaluationUtil(synapseClient);
@@ -149,6 +152,7 @@ public class EvaluationUtilTest {
 	
 	@Test
 	public void testDownloadSubmissionFile() throws Exception {
+		if (StringUtils.isEmpty(getProperty("USERNAME", true))) return; // no properties
 		setup();
 		Submission submission = createSubmission(evaluation.getId());
 		EvaluationUtil evaluationUtil = new EvaluationUtil(synapseClient);
