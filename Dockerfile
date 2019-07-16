@@ -1,5 +1,5 @@
 FROM maven:3-jdk-11
-COPY pom.xml *.sh /
-COPY src /src
+COPY NRGRSynapseGlue/pom.xml /
+COPY NRGRSynapseGlue/src /src
 RUN mvn clean install
 CMD exec mvn exec:java -DentryPoint=org.sagebionetworks.NRGRSynapseGlue
