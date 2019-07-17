@@ -14,9 +14,7 @@ public class Util {
 		InputStream is = null;
 		try {
 			is = NRGRSynapseGlue.class.getClassLoader().getResourceAsStream("global.properties");
-			properties.load(is);
-		} catch (NullPointerException e) {
-			return; // no properties file to read
+			if (is!=null) properties.load(is);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
