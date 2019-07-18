@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
+
 public class Util {
 	private static Properties properties = null;
 
@@ -30,14 +32,15 @@ public class Util {
 		return getProperty(key, false);
 	}
 		
-	public static String getProperty(String key, boolean missingIsOK) {
+	public static String getProperty(String key, boolean missingOK) {
 		initProperties();
 		String commandlineOption = System.getProperty(key);
-		if (commandlineOption!=null) return commandlineOption;
+		if (!StringUtils.isEmpty(commandlineOption)) return commandlineOption;
 		String embeddedProperty = properties.getProperty(key);
-		if (embeddedProperty!=null) return embeddedProperty;
-		if (!missingIsOK) throw new RuntimeException("Cannot find value for "+key);
-		return null;
+		if (!StringUtils.isEmpty(embeddedProperty)) return embeddedProperty;
+		String envVar = System.getenv(key);
+		if (!StringUtils.isEmpty(envVar)) return envVar;
+		if (missingOK) return null; else throw new RuntimeException("Cannot find value for "+key);
 	}	
 
 	public static Date cleanDate(Date d) {
