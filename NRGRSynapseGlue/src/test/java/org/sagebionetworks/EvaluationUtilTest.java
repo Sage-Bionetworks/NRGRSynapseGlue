@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.After;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import org.sagebionetworks.repo.model.FileEntity;
 import org.sagebionetworks.repo.model.Project;
 import org.sagebionetworks.repo.model.annotation.StringAnnotation;
 import org.sagebionetworks.repo.model.auth.LoginRequest;
-import org.sagebionetworks.repo.model.file.S3FileHandle;
+import org.sagebionetworks.repo.model.file.CloudProviderFileHandleInterface;
 
 import com.amazonaws.util.IOUtils;
 
@@ -65,7 +65,7 @@ public class EvaluationUtilTest {
 	    	byte[] messageBytes = FILE_CONTENT.getBytes(Charset.defaultCharset());
 	    	InputStream is = new ByteArrayInputStream(messageBytes);
 	
-	    	S3FileHandle fileHandle;
+	    	CloudProviderFileHandleInterface fileHandle;
 	
 	    	try {
 	    		fileHandle = synapseClient.multipartUpload(is, (long)messageBytes.length, 

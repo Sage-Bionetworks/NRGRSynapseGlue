@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,6 +86,7 @@ public class NRGRSynapseGlueTest  {
 	private static final String TEAM_2_ID = "3334673"; // taken from the configuration
 	private static final long EXPIRES_ON = System.currentTimeMillis()+21081600000L;
 	private static final long MILLISEC_PER_DAY = 1000*3600*24L;
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM/dd/yyyy");
 	
 	private List<SubmissionBundle> submissionsToProcess;
 	private Submission submission;
@@ -359,11 +362,8 @@ public class NRGRSynapseGlueTest  {
 		assertEquals(1, spr.getMessagesToSender().size());
 		MimeMessageAndReason mmr = spr.getMessagesToSender().get(0);
 		String expectedErrorMessage = "1 valid token(s) and 1 invalid token(s) were found in this message.\n" + 
-				"	Message timestamp has expired. Applicant must reinitiate the approval process: TokenContent [userId=111, accessRequirementIds=[999], timestamp="+
-				(new Date(now-tokenExpiration-1000L))
-				+", tokenLabel=foo, applicationTeamId=3324934, membershipRequestExpiration="+
-				(new Date(now+1000L))
-				+"]";
+				"	Message timestamp has expired. Applicant must reinitiate the approval process: tokenLabel=foo, userId=111, applicationTeamId=3324934, accessRequirementIds=[999], expiration="+
+				DATE_FORMAT.format(new Date(now+1000L))+", createdOn="+DATE_FORMAT.format(new Date(now-tokenExpiration-1000L));
 		
 		assertEquals(expectedErrorMessage, mmr.getReason());
 		assertNotNull(mmr.getMimeMessage());
@@ -413,7 +413,7 @@ public class NRGRSynapseGlueTest  {
 		// method under test
 		Map<String,DatasetSettings> dsMap = new HashMap<String,DatasetSettings>();
 		dsMap.put(TEAM_ID, datasetSettings);
-		nrgrSynapseGlue.approveApplicants(dsMap);
+		nrgrSynapseGlue.approveApplicantsBatch(dsMap);
 		
 		// check results
 		ArgumentCaptor<MimeMultipart> captureMimeMultipart = ArgumentCaptor

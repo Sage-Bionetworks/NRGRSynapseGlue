@@ -18,7 +18,7 @@ import org.apache.http.entity.ContentType;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.repo.model.UserProfile;
-import org.sagebionetworks.repo.model.file.S3FileHandle;
+import org.sagebionetworks.repo.model.file.CloudProviderFileHandleInterface;
 import org.sagebionetworks.repo.model.message.MessageToUser;
 import org.sagebionetworks.repo.model.message.multipart.Attachment;
 import org.sagebionetworks.repo.model.message.multipart.MessageBody;
@@ -66,7 +66,7 @@ public class MessageUtil {
 		byte[] messageBytes = messageBodyString.getBytes(MESSAGE_JSON_CONTENT_TYPE.getCharset());
 		InputStream is = new ByteArrayInputStream(messageBytes);
 		
-		S3FileHandle fileHandle;
+		CloudProviderFileHandleInterface fileHandle;
 		try {
 			fileHandle = synapseClient.multipartUpload(is, (long)messageBytes.length, 
 				"message.json", MESSAGE_JSON_CONTENT_TYPE.toString(), 

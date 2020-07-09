@@ -129,8 +129,15 @@ public class TokenUtil {
 	/*
 	 * The input could be either a serialized MimeMessage or just a plain file containing
 	 * one or more tokens.
+	 * 
+	 * approverId: The Synapse ID of the one submitting these access tokens, or null if they were processed 
+	 * by a daily cron job
 	 */
 	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, Map<String,DatasetSettings> settings, MembershipRequestChecker mrc, long now) throws IOException, SynapseException {
+		return parseTokensFromInput(in, settings, mrc, now, null);
+	}
+
+	public static Set<TokenAnalysisResult> parseTokensFromInput(byte[] in, Map<String,DatasetSettings> settings, MembershipRequestChecker mrc, long now, String approverId) throws IOException, SynapseException {
 		// first, just treat the input stream as a plain file
 		Set<TokenAnalysisResult> tarList = new HashSet<TokenAnalysisResult>();
 		tarList.addAll(parseTokensFromString(new String(in)));
@@ -154,6 +161,9 @@ public class TokenUtil {
 				DatasetSettings ds = settings.get(applicationTeamId);
 				long tokenTimeoutMillis = ds.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
 				TokenContent tc = tar.getTokenContent();
+				if (approverId!=null && !ds.getApproverSynapseIds().contains(approverId)) {
+					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Submitter is not authorized to approve this access token "+tc));
+				}
 				if (tc.getTimestamp().getTime()+tokenTimeoutMillis<now) {
 					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process: "+tc));
 				} else if (!mrc.doesMembershipRequestExist(tar.getTokenContent().getApplicationTeamId(), ""+tar.getTokenContent().getUserId())) {

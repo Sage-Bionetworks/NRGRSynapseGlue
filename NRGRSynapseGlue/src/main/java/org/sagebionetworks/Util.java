@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class Util {
 	private static Properties properties = null;

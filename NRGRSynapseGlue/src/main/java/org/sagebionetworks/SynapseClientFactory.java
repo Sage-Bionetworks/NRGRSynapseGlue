@@ -23,8 +23,6 @@ import org.sagebionetworks.client.exceptions.SynapseUnauthorizedException;
 
 public class SynapseClientFactory {
 
-	private static final int TIMEOUT_MILLIS = 5 * 60 * 1000; // 5 minutes, as milliseconds   
-
 	private static SynapseClient createSynapseClientIntern() {
 		SynapseClientImpl scIntern = new SynapseClientImpl();
 		scIntern.setAuthEndpoint("https://repo-prod.prod.sagebase.org/auth/v1");

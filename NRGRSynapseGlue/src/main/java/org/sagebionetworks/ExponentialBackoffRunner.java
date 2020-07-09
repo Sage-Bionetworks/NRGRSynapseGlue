@@ -11,8 +11,6 @@ import org.sagebionetworks.client.exceptions.SynapseServiceUnavailable;
 import org.sagebionetworks.client.exceptions.SynapseTooManyRequestsException;
 import org.sagebionetworks.client.exceptions.UnknownSynapseServerException;
 
-import com.amazonaws.services.lambda.model.ServiceException;
-
 public class ExponentialBackoffRunner {
 	private static Logger log = Logger.getLogger(ExponentialBackoffRunner.class.getName());
 
