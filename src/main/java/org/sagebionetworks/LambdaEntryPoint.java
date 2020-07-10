@@ -5,6 +5,7 @@ import static org.sagebionetworks.repo.model.AuthorizationConstants.BEARER_TOKEN
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sagebionetworks.client.SynapseClient;
 
@@ -12,6 +13,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.google.api.client.util.Base64;
 
 /*
  * This is the entrypoint to call from AWS Lambda.
@@ -41,8 +43,11 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		responseHeaders.put("Content-Type", "text/plain");
 		try {
 			String data = event.getBody();
-			String sessionToken = event.getHeaders().get("sessionToken");
-			String authorizationHeader = event.getHeaders().get("Authorization");
+			if (BooleanUtils.isTrue(event.getIsBase64Encoded())) {
+				data = new String(Base64.decodeBase64(data));
+			}
+			String sessionToken = event.getHeaders().get("sessiontoken"); // something (API Gateway or Lambda) converts headers to lowercase
+			String authorizationHeader = event.getHeaders().get("authorization"); // something (API Gateway or Lambda) converts headers to lowercase
 			String accessToken = null;
 			if (StringUtils.isNotEmpty(authorizationHeader) && authorizationHeader.toLowerCase().startsWith(BEARER_TOKEN_HEADER.toLowerCase())) {
 				accessToken = authorizationHeader.substring(BEARER_TOKEN_HEADER.length());
@@ -55,7 +60,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 				synapseClient.setBearerAuthorizationToken(accessToken);
 			} else {
 				result.setStatusCode(401);
-				result.setBody("Must have either sessionToken or accessToken to authenticate with Synapse.\n"+eventAsString(event));
+				result.setBody("Must have either sessionToken or accessToken to authenticate with Synapse.\n");
 				return result;
 			}
 			
