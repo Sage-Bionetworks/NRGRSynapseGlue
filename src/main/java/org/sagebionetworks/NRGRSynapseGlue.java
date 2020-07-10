@@ -87,14 +87,6 @@ public class NRGRSynapseGlue {
 	private static final Logger logger =
 			Logger.getLogger(NRGRSynapseGlue.class.getName());
 
-
-	/*
-	 * For use by the LambdaEntryPoint
-	 */	
-	public NRGRSynapseGlue(SynapseClient synapseClient) throws SynapseException {
-		init(synapseClient);
-	} 
-
 	/*
 	 * Parameters:
 	 * signupTeamId:  Users wishing to gain access create a membership request in this Team
@@ -152,13 +144,11 @@ public class NRGRSynapseGlue {
 	/*
 	 * This is the entry point to process a cryptographically signed token
 	 */
-	public String processSubmittedToken(String data) throws Exception {
+	public String processSubmittedToken(String data, String submitterUserId) throws Exception {
 		Map<String,DatasetSettings> settings = getDatasetSettings();
 		
-		String mySynapseUserId = synapseClient.getMyProfile().getOwnerId();
-		
 		Set<TokenAnalysisResult> tokenAnalysisResults = 
-				TokenUtil.parseTokensFromInput(data.getBytes(), settings, mrc, System.currentTimeMillis(), mySynapseUserId);
+				TokenUtil.parseTokensFromInput(data.getBytes(), settings, mrc, System.currentTimeMillis(), submitterUserId);
 
 		Set<TokenContent> validTokens = new HashSet<TokenContent>();
 		for (TokenAnalysisResult tar : tokenAnalysisResults) {
