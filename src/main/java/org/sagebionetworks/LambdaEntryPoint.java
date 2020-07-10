@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sagebionetworks.client.SynapseClient;
+import org.sagebionetworks.client.exceptions.SynapseException;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -64,8 +65,17 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 				return result;
 			}
 			
-			NRGRSynapseGlue sg = new NRGRSynapseGlue(synapseClient);
-			result.setBody(sg.processSubmittedToken(data));
+			String mySynapseUserId;
+			try {
+				mySynapseUserId = synapseClient.getMyProfile().getOwnerId();
+			} catch (SynapseException e) {
+				result.setStatusCode(401);
+				result.setBody("Session/access token is invalid.  Unable to authenticate to Synapse.\n");
+				return result;
+			}
+			
+			NRGRSynapseGlue sg = new NRGRSynapseGlue();
+			result.setBody(sg.processSubmittedToken(data, mySynapseUserId));
 			result.setStatusCode(201);
 		} catch (Exception e) {
 			result.setStatusCode(500);
@@ -78,7 +88,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		StringBuilder sb = new StringBuilder();
 		sb.append("Headers:\n");
 		sb.append(event.getHeaders());
-		sb.append("Multi-value Headers:\n");
+		sb.append("\nMulti-value Headers:\n");
 		sb.append(event.getMultiValueHeaders());
 		sb.append("\nBody:\n");
 		sb.append(event.getBody());
