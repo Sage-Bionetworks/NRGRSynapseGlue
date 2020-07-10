@@ -23,8 +23,11 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
  * 
  * Response:
  * 201 status - success
- * 	response body is plain text, with a message for the user 
- * 4xx status - problem with authentication, authorization, or the data passed in to be processed
+ * 	response body is plain text, with a message for the user
+ *  this status doesn't mean the tokens were correct, just that the process completed.  
+ *  The returned message will contain results about specific tokens.
+ * 401 status - problem with authentication
+ * 500 status - internal error
  * 	response body is plain text, an error message
  * 
  */
@@ -51,16 +54,29 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			} else if (StringUtils.isNotEmpty(accessToken)) {
 				synapseClient.setBearerAuthorizationToken(accessToken);
 			} else {
-				throw new RuntimeException("Must have either sessionToken or accessToken to authenticate with Synapse.");
+				result.setStatusCode(401);
+				result.setBody("Must have either sessionToken or accessToken to authenticate with Synapse.\n"+eventAsString(event));
+				return result;
 			}
 			
 			NRGRSynapseGlue sg = new NRGRSynapseGlue(synapseClient);
 			result.setBody(sg.processSubmittedToken(data));
 			result.setStatusCode(201);
 		} catch (Exception e) {
-			result.setStatusCode(400);
+			result.setStatusCode(500);
 			result.setBody(e.getMessage());
 		}
 		return result;
+	}
+	
+	private String eventAsString(APIGatewayProxyRequestEvent event) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Headers:\n");
+		sb.append(event.getHeaders());
+		sb.append("Multi-value Headers:\n");
+		sb.append(event.getMultiValueHeaders());
+		sb.append("\nBody:\n");
+		sb.append(event.getBody());
+		return sb.toString();
 	}
 }
