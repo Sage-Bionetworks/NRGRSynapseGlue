@@ -85,28 +85,42 @@ public class NRGRSynapseGlue {
 	private IMAPClient mailClient;
 	
 	private static final Logger logger =
-		      Logger.getLogger(NRGRSynapseGlue.class.getName());
+			Logger.getLogger(NRGRSynapseGlue.class.getName());
+
+
+	/*
+	 * For use by the LambdaEntryPoint
+	 */	
+	public NRGRSynapseGlue(SynapseClient synapseClient) throws SynapseException {
+		init(synapseClient);
+	} 
+
 	/*
 	 * Parameters:
 	 * signupTeamId:  Users wishing to gain access create a membership request in this Team
 	 * accessRequirementId: The ID of the access requirement retricting access to the data of interest
 	 * 
 	 */
+	private void init(SynapseClient synapseClient) {
+		this.synapseClient=synapseClient;
+		this.messageUtil = new MessageUtil(synapseClient);
+		this.tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"), getProperty("CONFIGURATION_TABLE_ID"));
+		this.evaluationUtil = new EvaluationUtil(synapseClient);
+		this.mailClient = new IMAPClient();
+	}
 
 	public NRGRSynapseGlue() throws SynapseException {
-		synapseClient = SynapseClientFactory.createSynapseClient();
+		SynapseClient synapseClient = SynapseClientFactory.createSynapseClient();
 		String adminUserName = getProperty("USERNAME");
 		String adminPassword = getProperty("PASSWORD");
 		LoginRequest loginRequest = new LoginRequest();
 		loginRequest.setUsername(adminUserName);
 		loginRequest.setPassword(adminPassword);
 		synapseClient.login(loginRequest);
-		messageUtil = new MessageUtil(synapseClient);
-		tableUtil = new TableUtil(synapseClient, getProperty("TABLE_ID"), getProperty("CONFIGURATION_TABLE_ID"));
-		evaluationUtil = new EvaluationUtil(synapseClient);
-		this.mailClient = new IMAPClient();
+
+		init(synapseClient);
 	}
-	
+
 	/*
 	 * for testing
 	 */
@@ -123,13 +137,49 @@ public class NRGRSynapseGlue {
 		this.mailClient=mailClient;
 	}
 
+	/*
+	 * This is the entry point to call via a CRON job
+	 */
 	public static void main(String[] args) throws Exception {
 		NRGRSynapseGlue sg = new NRGRSynapseGlue();
 		sg.processNewApplicants();
 		sg.checkForMail();
 		Map<String,DatasetSettings> settings = sg.getDatasetSettings();
-		sg.approveApplicants(settings);
+		sg.approveApplicantsBatch(settings);
 		sg.removeExpiredAccess(settings);
+	}
+	
+	/*
+	 * This is the entry point to process a cryptographically signed token
+	 */
+	public String processSubmittedToken(String data) throws Exception {
+		Map<String,DatasetSettings> settings = getDatasetSettings();
+		
+		String mySynapseUserId = synapseClient.getMyProfile().getOwnerId();
+		
+		Set<TokenAnalysisResult> tokenAnalysisResults = 
+				TokenUtil.parseTokensFromInput(data.getBytes(), settings, mrc, System.currentTimeMillis(), mySynapseUserId);
+
+		Set<TokenContent> validTokens = new HashSet<TokenContent>();
+		for (TokenAnalysisResult tar : tokenAnalysisResults) {
+			if (tar.isValid()) {
+				validTokens.add(tar.getTokenContent());
+			}
+		}
+
+		approveApplicants(validTokens, settings);
+		
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("The submission contained "+tokenAnalysisResults.size()+" tokens, "+validTokens.size()+" of which were valid.");
+		for (TokenAnalysisResult tar : tokenAnalysisResults) {
+			if (tar.isValid()) {
+				sb.append("\n\nValid token (user has been approved): "+tar.getTokenContent());
+			} else {
+				sb.append("\n\nInvalid token "+tar.getTokenContent()+ "\n\tReason: "+tar.getReason());
+			}
+		}
+		return sb.toString();
 	}
 	
 	public Map<String,DatasetSettings> getDatasetSettings() throws Exception {
@@ -343,19 +393,9 @@ public class NRGRSynapseGlue {
 		return result;
 	}
 	
-	// Check for incoming email and if there is a valid attachment then approve them
-	public void approveApplicants(Map<String,DatasetSettings> settings) throws Exception {
-		String evaluationId = getProperty("EVALUATION_ID");
-
-		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
-		
-		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
-		
-		// notify message sender about any bad messages (missing tokens, etc.)
-		sendRejectionsToMailSender(sprs.getMessagesToSender());
-		
+	public void approveApplicants(Set<TokenContent> validTokens, Map<String,DatasetSettings> settings) throws Exception {
 		// find those not already approved
-		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(sprs.getValidTokens());
+		TokenTableLookupResults usersToApprove = tableUtil.getRowsForAcceptedButNotYetApprovedUserIds(validTokens);
 		
 		// create the AccessApprovals in Synapse
 		createAccessApprovals(usersToApprove.getTokens());
@@ -379,13 +419,26 @@ public class NRGRSynapseGlue {
 			String tableId = getProperty("TABLE_ID");
 			synapseClient.appendRowsToTable(rowSet, TABLE_UPDATE_TIMEOUT, tableId);
 		}
+	}
+	
+	// Check for incoming email and if there is a valid attachment then approve them
+	public void approveApplicantsBatch(Map<String,DatasetSettings> settings) throws Exception {
+		String evaluationId = getProperty("EVALUATION_ID");
+
+		List<SubmissionBundle> receivedSubmissions = evaluationUtil.getReceivedSubmissions(evaluationId);
+		
+		SubmissionProcessingResult sprs = processReceivedSubmissions(receivedSubmissions, settings);
+		
+		// notify message sender about any bad messages (missing tokens, etc.)
+		sendRejectionsToMailSender(sprs.getMessagesToSender());
+		
+		approveApplicants(sprs.getValidTokens(), settings);
 		
 		// update submission statuses
 		evaluationUtil.updateSubmissionStatusBatch(sprs.getProcessedSubmissions(), evaluationId);
 
 		System.out.println("Retrieved "+sprs.getProcessedSubmissions().size()+
 				" submissions for approval and accepted "+sprs.getValidTokens().size()+" users.");
-
 	}
 	
 	private static final boolean ENABLE_REVOCATION = true;
@@ -561,5 +614,6 @@ public class NRGRSynapseGlue {
 			}
 		}
 	}
+
 
 }

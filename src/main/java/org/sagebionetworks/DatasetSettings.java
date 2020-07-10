@@ -13,6 +13,7 @@ public class DatasetSettings {
 	private Integer tokenExpirationTimeDays;
 	private List<String> originatingIPsubnets;
 	private Integer expiresAfterDays;
+	private List<String> approverSynapseIds;
 	
 	public String getApplicationTeamId() {
 		return applicationTeamId;
@@ -78,6 +79,13 @@ public class DatasetSettings {
 	public void setRevocationEmailSynapseId(String revocationEmailSynapseId) {
 		this.revocationEmailSynapseId = revocationEmailSynapseId;
 	}
+	public List<String> getApproverSynapseIds() {
+		return approverSynapseIds;
+	}
+	public void setApproverSynapseIds(List<String> approverSynapseIds) {
+		this.approverSynapseIds = approverSynapseIds;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -85,6 +93,7 @@ public class DatasetSettings {
 		result = prime * result + ((accessRequirementIds == null) ? 0 : accessRequirementIds.hashCode());
 		result = prime * result + ((applicationTeamId == null) ? 0 : applicationTeamId.hashCode());
 		result = prime * result + ((approvalEmailSynapseId == null) ? 0 : approvalEmailSynapseId.hashCode());
+		result = prime * result + ((approverSynapseIds == null) ? 0 : approverSynapseIds.hashCode());
 		result = prime * result + ((dataDescriptor == null) ? 0 : dataDescriptor.hashCode());
 		result = prime * result + ((expiresAfterDays == null) ? 0 : expiresAfterDays.hashCode());
 		result = prime * result + ((originatingIPsubnets == null) ? 0 : originatingIPsubnets.hashCode());
@@ -117,6 +126,11 @@ public class DatasetSettings {
 			if (other.approvalEmailSynapseId != null)
 				return false;
 		} else if (!approvalEmailSynapseId.equals(other.approvalEmailSynapseId))
+			return false;
+		if (approverSynapseIds == null) {
+			if (other.approverSynapseIds != null)
+				return false;
+		} else if (!approverSynapseIds.equals(other.approverSynapseIds))
 			return false;
 		if (dataDescriptor == null) {
 			if (other.dataDescriptor != null)
@@ -162,7 +176,7 @@ public class DatasetSettings {
 				+ ", approvalEmailSynapseId=" + approvalEmailSynapseId + ", revocationEmailSynapseId="
 				+ revocationEmailSynapseId + ", dataDescriptor=" + dataDescriptor + ", tokenExpirationTimeDays="
 				+ tokenExpirationTimeDays + ", originatingIPsubnets=" + originatingIPsubnets + ", expiresAfterDays="
-				+ expiresAfterDays + "]";
+				+ expiresAfterDays + ", approverSynapseIds=" + approverSynapseIds + "]";
 	}
 
 

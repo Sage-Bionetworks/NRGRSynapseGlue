@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.client.exceptions.SynapseResultNotReadyException;
@@ -95,6 +95,9 @@ public class TableUtil {
 				} else if (sc.getName().equals("expiresAfterDays")) {
 					if (!StringUtils.isEmpty(value))
 						setting.setExpiresAfterDays(Integer.parseInt(value));
+				} else if (sc.getName().equals("approverSynapseIds")) {
+					String[] approverSynapseIds = value.split(",");
+					setting.setApproverSynapseIds(Arrays.asList(approverSynapseIds));
 				} else {
 					throw new RuntimeException("Unexpected column "+sc.getName());
 				}
@@ -238,7 +241,7 @@ public class TableUtil {
 	 * Executes a query for which the max number of returned rows is known (i.e. we retrieve in a single page)
 	 */
 	private Pair<List<SelectColumn>, RowSet> executeQuery(String sql, String tableId, long queryLimit) throws SynapseException, InterruptedException {
-		String asyncJobToken = synapseClient.queryTableEntityBundleAsyncStart(sql, 0L, queryLimit, true, QUERY_PARTS_MASK, tableId);
+		String asyncJobToken = synapseClient.queryTableEntityBundleAsyncStart(sql, 0L, queryLimit, QUERY_PARTS_MASK, tableId);
 		QueryResultBundle qrb=null;
 		long backoff = 100L;
 		for (int i=0; i<100; i++) {

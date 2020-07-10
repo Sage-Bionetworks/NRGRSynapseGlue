@@ -9,7 +9,7 @@ import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.evaluation.model.Submission;
 import org.sagebionetworks.repo.model.FileEntity;
-import org.sagebionetworks.repo.model.file.S3FileHandle;
+import org.sagebionetworks.repo.model.file.CloudProviderFileHandleInterface;
 
 /*
  * This message handler turns the message into an Evaluation Submission
@@ -31,7 +31,7 @@ public class SubmissionMessageHandler implements MessageHandler {
 			// upload to Synapse
 			InputStream is = new ByteArrayInputStream(messageContent);
 			
-			S3FileHandle fileHandle;
+			 CloudProviderFileHandleInterface fileHandle;
 			try {
 				fileHandle = synapseClient.multipartUpload(is, (long)messageContent.length, 
 					"message.txt", ContentType.TEXT_PLAIN.toString(), 

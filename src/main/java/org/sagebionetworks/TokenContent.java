@@ -1,9 +1,12 @@
 package org.sagebionetworks;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 public class TokenContent {
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM/dd/yyyy");
 	private long userId;
 	private List<Long> accessRequirementIds;
 	private Date timestamp;
@@ -137,11 +140,12 @@ public class TokenContent {
 
 	@Override
 	public String toString() {
-		return "TokenContent [userId=" + userId + ", accessRequirementIds="
-				+ accessRequirementIds + ", timestamp=" + timestamp
-				+ ", tokenLabel=" + tokenLabel + ", applicationTeamId="
-				+ applicationTeamId + ", membershipRequestExpiration="
-				+ membershipRequestExpiration + "]";
+		return "tokenLabel=" + tokenLabel
+				+ ", userId=" + userId 
+				+ ", applicationTeamId="+ applicationTeamId
+				+", accessRequirementIds="+ accessRequirementIds
+				+ ", expiration="+ DATE_FORMAT.format(membershipRequestExpiration)
+				+ ", createdOn=" + DATE_FORMAT.format(timestamp);
 	}
 	
 	
