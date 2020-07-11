@@ -162,12 +162,11 @@ public class TokenUtil {
 				long tokenTimeoutMillis = ds.getTokenExpirationTimeDays()*MILLISEC_PER_DAY;
 				TokenContent tc = tar.getTokenContent();
 				if (approverId!=null && !ds.getApproverSynapseIds().contains(approverId)) {
-					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Submitter is not authorized to approve this access token "+tc));
-				}
-				if (tc.getTimestamp().getTime()+tokenTimeoutMillis<now) {
-					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process: "+tc));
+					result.add(createFailedTokenAnalysisResult(tc, tar.getUserId(), "Submitter is not authorized to approve this access token."));
+				} else if (tc.getTimestamp().getTime()+tokenTimeoutMillis<now) {
+					result.add(createFailedTokenAnalysisResult(tc, tar.getUserId(), "Message timestamp has expired. Applicant must reinitiate the approval process."));
 				} else if (!mrc.doesMembershipRequestExist(tar.getTokenContent().getApplicationTeamId(), ""+tar.getTokenContent().getUserId())) {
-					result.add(createFailedTokenAnalysisResult(tar.getUserId(), "Synapse is not expecting approval token. Applicant must reinitiate the approval process: "+tc));
+					result.add(createFailedTokenAnalysisResult(tc, tar.getUserId(), "Synapse is not expecting approval token. Applicant must reinitiate the approval process."));
 				} else {
 					result.add(tar);
 				}
@@ -239,6 +238,10 @@ public class TokenUtil {
 	
 	private static TokenAnalysisResult createFailedTokenAnalysisResult(Long userId, String reason) {
 		return new TokenAnalysisResult(null, false, userId, reason);
+	}
+	
+	private static TokenAnalysisResult createFailedTokenAnalysisResult(TokenContent tc, Long userId, String reason) {
+		return new TokenAnalysisResult(tc, false, userId, reason);
 	}
 	
 	public static TokenAnalysisResult parseToken(String token) {

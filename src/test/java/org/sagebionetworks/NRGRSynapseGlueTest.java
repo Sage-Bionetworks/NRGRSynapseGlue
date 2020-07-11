@@ -362,8 +362,7 @@ public class NRGRSynapseGlueTest  {
 		assertEquals(1, spr.getMessagesToSender().size());
 		MimeMessageAndReason mmr = spr.getMessagesToSender().get(0);
 		String expectedErrorMessage = "1 valid token(s) and 1 invalid token(s) were found in this message.\n" + 
-				"	Message timestamp has expired. Applicant must reinitiate the approval process: tokenLabel=foo, userId=111, applicationTeamId=3324934, accessRequirementIds=[999], expiration="+
-				DATE_FORMAT.format(new Date(now+1000L))+", createdOn="+DATE_FORMAT.format(new Date(now-tokenExpiration-1000L));
+				"	Message timestamp has expired. Applicant must reinitiate the approval process.";
 		
 		assertEquals(expectedErrorMessage, mmr.getReason());
 		assertNotNull(mmr.getMimeMessage());
