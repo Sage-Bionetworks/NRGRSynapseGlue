@@ -164,7 +164,7 @@ public class NRGRSynapseGlue {
 		sb.append("The submission contained "+tokenAnalysisResults.size()+" tokens, "+validTokens.size()+" of which were valid.");
 		for (TokenAnalysisResult tar : tokenAnalysisResults) {
 			if (tar.isValid()) {
-				sb.append("\n\nValid token (user has been approved): "+tar.getTokenContent());
+				sb.append("\n\nValid token (user has been approved):\n\t"+tar.getTokenContent());
 			} else {
 				sb.append("\n\nInvalid token "+tar.getTokenContent()+ "\n\tReason: "+tar.getReason());
 			}
