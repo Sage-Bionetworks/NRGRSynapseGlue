@@ -364,7 +364,7 @@ public class NRGRSynapseGlueTest  {
 		String expectedErrorMessage = "1 valid token(s) and 1 invalid token(s) were found in this message.\n" + 
 				"	Message timestamp has expired. Applicant must reinitiate the approval process.";
 		
-		assertNotNull(expectedErrorMessage, mmr.getReason());
+		assertEquals(expectedErrorMessage, mmr.getReason());
 		assertNotNull(mmr.getMimeMessage());
 		
 	}
