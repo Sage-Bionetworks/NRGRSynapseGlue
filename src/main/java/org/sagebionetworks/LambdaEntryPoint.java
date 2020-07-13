@@ -42,6 +42,16 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		Map<String,String> responseHeaders = new HashMap<String,String>();
 		result.setHeaders(responseHeaders);
 		responseHeaders.put("Content-Type", "text/plain");
+		if (event.getHttpMethod().toLowerCase().equals("options")) {
+			responseHeaders.put("Allow", "OPTIONS, POST");
+			result.setStatusCode(200);
+			return result;
+		}
+		if (!event.getHttpMethod().toLowerCase().equals("post")) {
+			result.setStatusCode(405);
+			result.setBody("Method not supported");
+			return result;
+		}
 		try {
 			String data = event.getBody();
 			if (BooleanUtils.isTrue(event.getIsBase64Encoded())) {
