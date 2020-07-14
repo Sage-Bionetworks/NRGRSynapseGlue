@@ -48,6 +48,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		if (event.getHttpMethod()!=null && event.getHttpMethod().toLowerCase().equals("options")) {
 			responseHeaders.put("Allow", "OPTIONS,POST");
 			result.setStatusCode(200);
+			result.setBody("OPTIONS response from Lambda");
 			return result;
 		}
 		if (event.getHttpMethod()==null || !event.getHttpMethod().toLowerCase().equals("post")) {
