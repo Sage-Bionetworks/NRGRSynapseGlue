@@ -42,7 +42,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		Map<String,String> responseHeaders = new HashMap<String,String>();
 		result.setHeaders(responseHeaders);
 		responseHeaders.put("Content-Type", "text/plain");
-		responseHeaders.put("Access-Control-Allow-Headers", "Content-Type");
+		responseHeaders.put("Access-Control-Allow-Headers", "Content-Type,sessionToken,Authorization");
 		responseHeaders.put("Access-Control-Allow-Origin", "*");
 		responseHeaders.put("Access-Control-Allow-Methods", "OPTIONS,POST");
 		if (event.getHttpMethod()!=null && event.getHttpMethod().toLowerCase().equals("options")) {
@@ -75,7 +75,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 				synapseClient.setBearerAuthorizationToken(accessToken);
 			} else {
 				result.setStatusCode(401);
-				result.setBody("Must have either sessionToken or accessToken to authenticate with Synapse.\n");
+				result.setBody("Must include either session token or access token to authenticate with Synapse.\n");
 				return result;
 			}
 			
