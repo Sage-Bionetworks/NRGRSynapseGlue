@@ -3,6 +3,7 @@ package org.sagebionetworks;
 import static org.sagebionetworks.repo.model.AuthorizationConstants.BEARER_TOKEN_HEADER;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,6 +100,9 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			pw.println(e.getMessage());
 			pw.println();
 			e.printStackTrace(pw);
+			pw.flush();
+			pw.close();
+			try {baos.close();} catch (IOException ioe) {}
 			result.setStatusCode(500);
 			result.setBody(baos.toString());
 		}
