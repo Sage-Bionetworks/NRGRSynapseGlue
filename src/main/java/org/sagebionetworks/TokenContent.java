@@ -144,10 +144,13 @@ public class TokenContent {
 				+ ", userId=" + userId 
 				+ ", applicationTeamId="+ applicationTeamId
 				+", accessRequirementIds="+ accessRequirementIds
-				+ ", expiration="+ DATE_FORMAT.format(membershipRequestExpiration)
-				+ ", createdOn=" + DATE_FORMAT.format(timestamp);
+				+ ", expiration="+ safeDateFormat(membershipRequestExpiration)
+				+ ", createdOn=" + safeDateFormat(timestamp);
 	}
 	
-	
+	public static final String safeDateFormat(Date d) {
+		if (d==null) return null;
+		return DATE_FORMAT.format(d);
+	}
 	
 }

@@ -149,6 +149,12 @@ public class TokenUtilTest {
  		assertEquals(new Date(now), tc.getTimestamp());
  		assertEquals("PsychENCODE", tc.getTokenLabel());
  	}
+    
+    @Test
+    public void testParseAnotherV2Token() throws Exception {
+    	String token = "=============== SYNAPSE LINK TOKEN BOUNDARY ===============|PsychENCODE|3412738|3334673|5612415|null|1595262609995|S72aj7MXN5oyZduc4ivuKLDrMcA=|=============== SYNAPSE LINK TOKEN BOUNDARY ===============";
+ 		Set<TokenAnalysisResult> tars = TokenUtil.parseTokensFromInput(token.getBytes(), createDatasetSettingsMap(), MOCK_MRC_RETURN_TRUE, currentTimeForTesting);  
+    }
 
     @Test
  	public void testCreateAndParseV2TokenWithNullMembershipRequestExpiration() throws Exception {
