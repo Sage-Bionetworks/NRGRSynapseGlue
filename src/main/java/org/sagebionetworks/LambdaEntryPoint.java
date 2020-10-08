@@ -2,6 +2,8 @@ package org.sagebionetworks;
 
 import static org.sagebionetworks.repo.model.AuthorizationConstants.BEARER_TOKEN_HEADER;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,8 +94,13 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			result.setBody(sg.processSubmittedToken(data, mySynapseUserId));
 			result.setStatusCode(201);
 		} catch (Exception e) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintWriter pw = new PrintWriter(baos);
+			pw.println(e.getMessage());
+			pw.println();
+			e.printStackTrace(pw);
 			result.setStatusCode(500);
-			result.setBody(e.getMessage());
+			result.setBody(baos.toString());
 		}
 		return result;
 	}
