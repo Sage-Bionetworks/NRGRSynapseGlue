@@ -1,0 +1,43 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:  
+  schedule:
+    - cron: '*/15 * * * *'
+
+jobs:
+  cron:
+    name: cron
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout source code
+      uses: actions/checkout@v2
+    - uses: addnab/docker-run-action@v3
+      with:
+        image: sagebionetworks/nrgrsynapseglue
+        options: |
+          --rm -it 
+          -e USERNAME=dataAccess
+          -e PASSWORD=${{ secrets.PASSWORD }}
+          -e CONFIGURATION_TABLE_ID=syn5763221
+          -e ORIGINAL_APPLICATION_TEAM_ID=3324934
+          -e CC_RECIPIENT=3375085
+          -e HMAC_SECRET_KEY=${{ secrets.HMAC_SECRET_KEY }}
+          -e TABLE_ID=syn3243669
+          -e EVALUATION_ID=3249209
+          -e GMAIL_ADDRESS=${{ secrets.GMAIL_ADDRESS }}
+          -e GOOGLE_OAUTH_CLIENT_ID=752321674974.apps.googleusercontent.com
+          -e GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          -e GOOGLE_OAUTH_REFRESH_TOKEN=${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          -e MAIL_IN_FOLDER=CMC-IN
+          -e MAIL_OUT_FOLDER=CMC-OUT
+          -e MESSAGE_CONTAINER_ENTITY_ID=syn3278591
+ 
+    
+    
+    
+    
+  
