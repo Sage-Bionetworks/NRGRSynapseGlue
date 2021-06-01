@@ -17,6 +17,7 @@ jobs:
       with:
         image: sagebionetworks/nrgrsynapseglue
         options: |
+          -t
           -e USERNAME=dataAccess
           -e PASSWORD=${{ secrets.PASSWORD }}
           -e CONFIGURATION_TABLE_ID=syn5763221
