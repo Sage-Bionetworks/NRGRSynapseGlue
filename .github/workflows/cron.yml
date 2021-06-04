@@ -19,8 +19,12 @@ jobs:
         java-version: 1.8
     - name: build with Maven
       run: mvn clean install
+      with:
+        java-version: 1.8
     - name: run
       run: mvn --file pom.xml exec:java
+      with:
+        java-version: 1.8
       env:
         USERNAME: dataAccess
         PASSWORD: ${{ secrets.PASSWORD }}
