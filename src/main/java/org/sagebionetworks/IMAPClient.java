@@ -77,7 +77,7 @@ public class IMAPClient {
 	
 	private void init() throws Exception {
 		if (session==null) {
-			session = getSession("imap.gmail.com", 993, false);
+			session = getSession("imap.gmail.com", 993, true);
 		}
 		if (imapStore==null) {
 			imapStore = connectToImap("imap.gmail.com", 993, session);
@@ -113,10 +113,10 @@ public class IMAPClient {
 		props.put(OAuth2SaslClientFactory.OAUTH_TOKEN_PROP, oauthToken);
 		// to fix 'protocol is disabled or cipher suites are inappropriate':
 		// from https://www.edureka.co/community/68998/sslhandshakeexception-appropriate-protocol-inappropriate
-		props.put("mail.smtp.starttls.enable", "true");
-		props.put("mail.smtp.ssl.protocols", "TLSv1.2"); 
+		// props.put("mail.smtp.starttls.enable", "true");
+		// props.put("mail.smtp.ssl.protocols", "TLSv1.2"); 
 		// if the above does not work then this might
-		// props.put("jdk.tls.disabledAlgorithms", "");
+		props.put("jdk.tls.disabledAlgorithms", "");
 		Session session = Session.getInstance(props);
 		session.setDebug(debug);
 		session.getProperties().setProperty("mail.mime.cachemultipart", Boolean.FALSE.toString());
