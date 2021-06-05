@@ -112,9 +112,12 @@ public class IMAPClient {
 		props.put("mail.imaps.sasl.mechanisms", "XOAUTH2");
 		props.put(OAuth2SaslClientFactory.OAUTH_TOKEN_PROP, oauthToken);
 		// to fix 'protocol is disabled or cipher suites are inappropriate':
-		// from https://www.edureka.co/community/68998/sslhandshakeexception-appropriate-protocol-inappropriate
-		props.put("mail.smtp.starttls.enable", "true");
-		props.put("mail.smtp.ssl.protocols", "TLSv1.2"); 
+		// modified from https://www.edureka.co/community/68998/sslhandshakeexception-appropriate-protocol-inappropriate
+		// see https://javaee.github.io/javamail/docs/api/com/sun/mail/imap/package-summary.html
+		props.put("mail.imap.starttls.enable", "true");
+		props.put("mail.imaps.starttls.enable", "true");
+		props.put("mail.imap.ssl.protocols", "TLSv1.2"); 
+		props.put("mail.imaps.ssl.protocols", "TLSv1.2"); 
 		// if the above does not work then this might
 		//props.put("jdk.tls.disabledAlgorithms", "");
 		Session session = Session.getInstance(props);
