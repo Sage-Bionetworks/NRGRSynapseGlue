@@ -77,7 +77,7 @@ public class IMAPClient {
 	
 	private void init() throws Exception {
 		if (session==null) {
-			session = getSession("imap.gmail.com", 993, true);
+			session = getSession("imap.gmail.com", 993, false);
 		}
 		if (imapStore==null) {
 			imapStore = connectToImap("imap.gmail.com", 993, session);
@@ -114,12 +114,8 @@ public class IMAPClient {
 		// to fix 'protocol is disabled or cipher suites are inappropriate':
 		// modified from https://www.edureka.co/community/68998/sslhandshakeexception-appropriate-protocol-inappropriate
 		// see https://javaee.github.io/javamail/docs/api/com/sun/mail/imap/package-summary.html
-		props.put("mail.imap.starttls.enable", "true");
-		props.put("mail.imaps.starttls.enable", "true");
-		props.put("mail.imap.ssl.protocols", "TLSv1.2"); 
+		props.put("mail.imaps.starttls.enable", "true"); 
 		props.put("mail.imaps.ssl.protocols", "TLSv1.2"); 
-		// if the above does not work then this might
-		//props.put("jdk.tls.disabledAlgorithms", "");
 		Session session = Session.getInstance(props);
 		session.setDebug(debug);
 		session.getProperties().setProperty("mail.mime.cachemultipart", Boolean.FALSE.toString());
