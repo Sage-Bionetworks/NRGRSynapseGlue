@@ -13,7 +13,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.evaluation.model.Evaluation;
-import org.sagebionetworks.evaluation.model.EvaluationStatus;
 import org.sagebionetworks.evaluation.model.SubmissionBundle;
 import org.sagebionetworks.repo.model.Project;
 import org.sagebionetworks.repo.model.auth.LoginRequest;
@@ -41,7 +40,6 @@ public class SubmissionMessageHandlerTest {
 	    	evaluation = new Evaluation();
 	    	evaluation.setContentSource(project.getId());
 	    	evaluation.setName(UUID.randomUUID().toString());
-	    	evaluation.setStatus(EvaluationStatus.OPEN);
 	    	evaluation = synapseClient.createEvaluation(evaluation);
 
     }

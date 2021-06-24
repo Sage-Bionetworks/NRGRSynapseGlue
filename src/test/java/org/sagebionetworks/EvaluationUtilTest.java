@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 import org.sagebionetworks.evaluation.model.Evaluation;
-import org.sagebionetworks.evaluation.model.EvaluationStatus;
 import org.sagebionetworks.evaluation.model.Submission;
 import org.sagebionetworks.evaluation.model.SubmissionBundle;
 import org.sagebionetworks.evaluation.model.SubmissionStatus;
@@ -58,7 +57,6 @@ public class EvaluationUtilTest {
 	    	evaluation = new Evaluation();
 	    	evaluation.setContentSource(project.getId());
 	    	evaluation.setName(UUID.randomUUID().toString());
-	    	evaluation.setStatus(EvaluationStatus.OPEN);
 	    	evaluation = synapseClient.createEvaluation(evaluation);
 	
 	

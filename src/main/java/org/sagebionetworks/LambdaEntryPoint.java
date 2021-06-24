@@ -14,6 +14,7 @@ import org.sagebionetworks.client.SynapseClient;
 import org.sagebionetworks.client.exceptions.SynapseException;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
@@ -40,6 +41,8 @@ import com.google.api.client.util.Base64;
 public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 	@Override
 	public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent event, Context context) {
+		LambdaLogger logger = context.getLogger();
+		
 		APIGatewayProxyResponseEvent result = new APIGatewayProxyResponseEvent();
 		result.setIsBase64Encoded(false);
 		Map<String,String> responseHeaders = new HashMap<String,String>();
@@ -79,6 +82,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			} else {
 				result.setStatusCode(401);
 				result.setBody("Must include either session token or access token to authenticate with Synapse.\n");
+				logger.log("Response status is 401.  Request:\n"+eventAsString(event));
 				return result;
 			}
 			
