@@ -48,7 +48,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 		Map<String,String> responseHeaders = new HashMap<String,String>();
 		result.setHeaders(responseHeaders);
 		responseHeaders.put("Content-Type", "text/plain");
-		responseHeaders.put("Access-Control-Allow-Headers", "Content-Type,sessionToken,Authorization");
+		responseHeaders.put("Access-Control-Allow-Headers", "Content-Type,Authorization");
 		responseHeaders.put("Access-Control-Allow-Origin", "*");
 		responseHeaders.put("Access-Control-Allow-Methods", "OPTIONS,POST");
 		if (event.getHttpMethod()!=null && event.getHttpMethod().toLowerCase().equals("options")) {
@@ -67,7 +67,6 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			if (BooleanUtils.isTrue(event.getIsBase64Encoded())) {
 				data = new String(Base64.decodeBase64(data));
 			}
-			String sessionToken = event.getHeaders().get("sessiontoken"); // something (API Gateway or Lambda) converts headers to lowercase
 			String authorizationHeader = event.getHeaders().get("Authorization");
 			String accessToken = null;
 			if (StringUtils.isNotEmpty(authorizationHeader) && authorizationHeader.toLowerCase().startsWith(BEARER_TOKEN_HEADER.toLowerCase())) {
@@ -75,9 +74,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			}
 			// authenticate with Synapse
 			SynapseClient synapseClient = SynapseClientFactory.createSynapseClient();
-			if (StringUtils.isNotEmpty(sessionToken)) {
-				synapseClient.setSessionToken(sessionToken);
-			} else if (StringUtils.isNotEmpty(accessToken)) {
+			if (StringUtils.isNotEmpty(accessToken)) {
 				synapseClient.setBearerAuthorizationToken(accessToken);
 			} else {
 				result.setStatusCode(401);
