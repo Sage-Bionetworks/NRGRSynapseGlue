@@ -68,7 +68,7 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 				data = new String(Base64.decodeBase64(data));
 			}
 			String sessionToken = event.getHeaders().get("sessiontoken"); // something (API Gateway or Lambda) converts headers to lowercase
-			String authorizationHeader = event.getHeaders().get("authorization"); // something (API Gateway or Lambda) converts headers to lowercase
+			String authorizationHeader = event.getHeaders().get("Authorization");
 			String accessToken = null;
 			if (StringUtils.isNotEmpty(authorizationHeader) && authorizationHeader.toLowerCase().startsWith(BEARER_TOKEN_HEADER.toLowerCase())) {
 				accessToken = authorizationHeader.substring(BEARER_TOKEN_HEADER.length());
