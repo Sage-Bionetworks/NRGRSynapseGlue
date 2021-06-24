@@ -82,7 +82,8 @@ public class LambdaEntryPoint implements RequestHandler<APIGatewayProxyRequestEv
 			} else {
 				result.setStatusCode(401);
 				result.setBody("Must include either session token or access token to authenticate with Synapse.\n");
-				logger.log("Response status is 401.  Request:\n"+eventAsString(event));
+				logger.log("RESPONSE_STATUS: 401");
+				logger.log("REQUEST: \""+eventAsString(event)+"\"");
 				return result;
 			}
 			
