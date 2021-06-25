@@ -22,8 +22,7 @@ jobs:
     - name: run
       run: mvn --file pom.xml exec:java
       env:
-        USERNAME: dataAccess
-        PASSWORD: ${{ secrets.PASSWORD }}
+        SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         CONFIGURATION_TABLE_ID: syn5763221
         ORIGINAL_APPLICATION_TEAM_ID: 3324934
         CC_RECIPIENT: 3375085

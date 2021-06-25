@@ -103,12 +103,8 @@ public class NRGRSynapseGlue {
 
 	public NRGRSynapseGlue() throws SynapseException {
 		SynapseClient synapseClient = SynapseClientFactory.createSynapseClient();
-		String adminUserName = getProperty("USERNAME");
-		String adminPassword = getProperty("PASSWORD");
-		LoginRequest loginRequest = new LoginRequest();
-		loginRequest.setUsername(adminUserName);
-		loginRequest.setPassword(adminPassword);
-		synapseClient.login(loginRequest);
+		String accessToken = getProperty("SYNAPSE_ACCESS_TOKEN");
+		synapseClient.setBearerAuthorizationToken(accessToken);
 
 		init(synapseClient);
 	}
